@@ -15,8 +15,6 @@ public class MainActivity extends Activity {
 	
 	AsyncTask<Integer, Void, Socket> task;
 	Socket sock = null;
-	
-	//this is a change to main activity
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
