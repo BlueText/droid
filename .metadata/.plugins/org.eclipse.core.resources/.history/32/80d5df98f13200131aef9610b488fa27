@@ -36,7 +36,9 @@ public class ServerListener extends AsyncTask<Integer, Void, Socket>
 		this.port = params[0];
 		
 		try{
-			sock = new Socket("206.127.186.13", 1300); // andy's PC
+			// for Andy's PC
+			sock = new Socket("206.127.186.9", 1300); // andy's PC
+			//sock = new Socket("129.186.67.229", port); // iastate server
 		}catch(Exception e){
 			Log.d(TAG, "Error in serverListener ctor: " + e.getMessage());
 		}
@@ -70,9 +72,9 @@ public class ServerListener extends AsyncTask<Integer, Void, Socket>
 	
 	public void sendMsgToServer(TextMessage msg)
 	{
-		Log.d(TAG, "Sending message: " + msg.getContent());
-		//toServer.writeObject(msg);		
-		ps.println(msg.getContent());
+			//toServer.writeObject(msg);
+			Log.d(TAG, "Sending message: " + msg.getContent());
+			ps.println(msg.getContent());
 	}
 	
 	private int sendTextToAndy(String msg)

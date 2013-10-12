@@ -38,7 +38,6 @@ public class MainActivity extends Activity {
 		if(sock == null){
 			try {
 				sock = task.get();
-				Log.d(TAG, "Got socket ok");
 			} catch (Exception e){
 				Log.e(TAG, "Error in serverListener ctor: " + e.getMessage());
 			}
