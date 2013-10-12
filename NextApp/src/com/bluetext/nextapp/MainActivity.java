@@ -1,24 +1,19 @@
 package com.bluetext.nextapp;
 
 import java.net.Socket;
-import java.util.concurrent.ExecutionException;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Activity;
-import android.content.Intent;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
-import android.widget.EditText;
 
 public class MainActivity extends Activity {
 	
 	private final String TAG = "AGG";
 	AsyncTask<Integer, Void, Socket> task;
 	Socket sock = null;
-	
-	//this is a change to main activity
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +37,9 @@ public class MainActivity extends Activity {
 			} catch (Exception e){
 				Log.e(TAG, "Error in serverListener ctor: " + e.getMessage());
 			}
+		}
+		else{
+			Log.d(TAG, "Already connected to socket.");
 		}
     }
 	

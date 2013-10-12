@@ -10,14 +10,16 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.telephony.SmsMessage;
 import android.util.Log;
+import bigsky.Contact;
+import bigsky.TextMessage;
 
 public class SmsListener extends BroadcastReceiver
 {
-    private SharedPreferences preferences;
+    @SuppressWarnings("unused")
+	private SharedPreferences preferences;
     private final String TAG = "AGG";
     private static ServerListener servListener = null;
     Queue<TextMessage> messageQueue = new LinkedList<TextMessage>();
-    Contact jon = new Contact(null, null, null, null);
     Contact andy = new Contact("Andy", "Guibert", "15072542815", null);
 
     @Override
@@ -28,6 +30,7 @@ public class SmsListener extends BroadcastReceiver
             SmsMessage[] messages = null;
             String messageSender;
             TextMessage curMsg;
+            Contact from;
             if (bundle != null){
                 try{
                     Object[] pduArray = (Object[]) bundle.get("pdus");
@@ -36,10 +39,11 @@ public class SmsListener extends BroadcastReceiver
                         messages[i] = SmsMessage.createFromPdu((byte[])pduArray[i]);
                         messageSender = messages[i].getOriginatingAddress();
                         String msgBody = messages[i].getMessageBody();
-                        Log.d(TAG, "Sender: " + messageSender);
+                        from = new Contact("First", "Last", messageSender, null);
                         Log.d(TAG, "Got msg: " + msgBody);
-                        curMsg = new TextMessage(jon, andy, msgBody);
-                        servListener.sendMsgToServer(curMsg);                        
+                        Log.d(TAG, "Sender: " + messageSender);                        
+                        curMsg = new TextMessage(null, from, msgBody);
+                        servListener.sendMsgToPC(curMsg);                        
                     }
                 }catch(Exception e){
                 	Log.d(TAG, "Error in SMSListener: " + e.getMessage());
