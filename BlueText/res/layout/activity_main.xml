@@ -12,44 +12,45 @@
         android:id="@+id/button1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:text="Connect to Server" 
-        android:onClick="connectToServer"/>
-
-    <EditText
-        android:id="@+id/phoneNumberField"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="82dp"
-        android:ems="10"
-        android:hint="Phone number"
-        android:inputType="text" >
-
-        <requestFocus />
-    </EditText>
+        android:onClick="connectToServer"
+        android:text="Connect to Server" />
 
     <EditText
         android:id="@+id/passwordField"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/button1"
+        android:layout_above="@+id/button2"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="24dp"
         android:ems="10"
         android:hint="Password"
-        android:inputType="textPassword" />
+        android:inputType="textPassword" >
+    </EditText>
 
+    <EditText
+        android:id="@+id/phoneNumberField"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/passwordField"
+        android:layout_alignLeft="@+id/passwordField"
+        android:layout_alignRight="@+id/passwordField"
+        android:layout_marginBottom="15dp"
+        android:ems="10"
+        android:hint="Phone Number"
+        android:inputType="number" >
+        <requestFocus/>
+	</EditText>
+		
     <Button
         android:id="@+id/button2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/button1"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="62dp"
-        android:text="Submit" 
-        android:onClick="printFields"/>
+        android:layout_alignLeft="@+id/passwordField"
+        android:layout_alignRight="@+id/passwordField"
+        android:layout_centerVertical="true"
+        android:onClick="getLogin"
+        android:text="Login" />
 
 </RelativeLayout>
