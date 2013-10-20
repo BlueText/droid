@@ -22,19 +22,19 @@ import android.widget.Toast;
 public class MainActivity extends Activity {
 	
 	private final String TAG = "AGG";
-	AsyncTask<Integer, Void, Socket> task;
+	private static String phoneNumber;
+	static AsyncTask<Integer, Void, Socket> task;
 	static AsyncTask<String, String, String> sqlTask;
-	Socket sock = null;
+	private Socket sock = null;
 	protected static Context ctx;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		//task = new ServerListener().execute(Integer.valueOf(1301));
-		//sqlTask = new SQLActivity().execute("select * from testTable");
 		sqlTask = null;
 		ctx = this.getApplicationContext();
+		new QuerySMSActivity().execute(ctx);
 	}
 
 	@Override
@@ -43,21 +43,7 @@ public class MainActivity extends Activity {
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
-	
-	public void connectToServer(View view){
-		if(sock == null){
-			try {
-				sock = task.get();
-				Log.d(TAG, "Got socket ok");
-			} catch (Exception e){
-				Log.e(TAG, "Error in serverListener ctor: " + e.getMessage());
-			}
-		}
-		else{
-			Log.d(TAG, "Already connected to socket.");
-		}
-    }
-	
+		
 	public void getLogin(View view)
 	{				
 		// Prevents user from spamming login button
@@ -66,7 +52,7 @@ public class MainActivity extends Activity {
 		}
 		
 		// Pull the username and password out of the login and password field
-		String phoneNumber = ((EditText) findViewById(R.id.phoneNumberField)).getText().toString();
+		phoneNumber = ((EditText) findViewById(R.id.phoneNumberField)).getText().toString();
 		String password    = ((EditText) findViewById(R.id.passwordField)).getText().toString();
 		
 		// Remove any wildcard chars that were entered as input
@@ -75,8 +61,11 @@ public class MainActivity extends Activity {
 		password = password.replace('%', ' ');
 		password = password.replace('_', ' ');
 		
+		((EditText) findViewById(R.id.phoneNumberField)).setText(null);
+		((EditText) findViewById(R.id.passwordField)).setText("");
+				
 		// Execute SQL statement
-		String sqlString = "SELECT * FROM testTable WHERE phoneNumber='" + phoneNumber + "' " + "AND password='" + password + "'";
+		String sqlString = "SELECT * FROM testTable WHERE phoneNumber='" + phoneNumber + "' AND password='" + password + "'";
 		sqlTask = new SQLLoginActivity().execute(sqlString);
 	}
 	
@@ -85,6 +74,8 @@ public class MainActivity extends Activity {
 		Toast.makeText(ctx, loginResult, Toast.LENGTH_LONG).show();
 		
 		if("Login Successful!".equalsIgnoreCase(loginResult)) {
+			new PutIPActivity().execute(phoneNumber);
+			//task = new ServerListener().execute(Integer.valueOf(1301));
 			//TODO bring user to a new window after they login
 		} 
 		else {

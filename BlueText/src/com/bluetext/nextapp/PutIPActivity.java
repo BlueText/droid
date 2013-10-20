@@ -1,6 +1,5 @@
 package com.bluetext.nextapp;
 
-
 import java.net.InetAddress;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -9,9 +8,8 @@ import java.sql.SQLException;
 
 import android.os.AsyncTask;
 import android.util.Log;
-import android.widget.Toast;
 
-public class SQLLoginActivity extends AsyncTask<String, String, String>
+public class PutIPActivity extends AsyncTask<String, String, String>
 {
 	private final String TAG = "AGG";
 	private static String sqlResult = null;
@@ -22,26 +20,20 @@ public class SQLLoginActivity extends AsyncTask<String, String, String>
 		Connection conn = null;
 		try {									
 			Class.forName("com.mysql.jdbc.Driver");
-		
 			conn = DriverManager.getConnection("jdbc:mysql://mysql.cs.iastate.edu/db30901", "adm309", "EXbDqudt4");
 			
-			ResultSet rs = conn.createStatement().executeQuery(params[0]);
-			
-			if(rs.next() == false){
-				Log.d(TAG, "Username/password were invalid");
-				sqlResult = "Username or password not found.";
-				return sqlResult;
+			String phone_IP = InetAddress.getLocalHost().getHostAddress();			
+			String sqlString = "UPDATE testTable SET IP_Phone='" + phone_IP + "' WHERE phoneNumber='" + params[0] + "'";			
+			if(conn.createStatement().executeUpdate(sqlString) != 1){
+				throw new SQLException("Expected only 1 row to be updated");
 			}
-			Log.d(TAG, rs.getString("phoneNumber"));
-			Log.d(TAG, rs.getString("password"));
-			rs.close();		
-			
-			conn.close();
-			
+						
+			Log.d(TAG, "The IP: " + phone_IP + " was put into testTable for user:" + params[0]);
 			sqlResult = "Login Successful!";
 			return sqlResult;
 		} catch (SQLException e){
-			sqlResult = "Unable to connect to login database in SQLLoginActivity.";			
+			sqlResult = "Unable to connect to login database in PutIPActivity.";
+			Log.d(TAG, sqlResult);
 			return sqlResult;
 		} catch (Exception e) {
 			Log.d(TAG, "Unknown exception caught in SQLActivity.");
@@ -49,7 +41,6 @@ public class SQLLoginActivity extends AsyncTask<String, String, String>
 			sqlResult = "An unknown exception occurred while logging in.";
 			return sqlResult;
 		} finally{
-			Log.d(TAG, sqlResult);
 			if(conn != null){
 				try {
 					conn.close();
@@ -57,8 +48,5 @@ public class SQLLoginActivity extends AsyncTask<String, String, String>
 			}			
 		}
 	}
-	
-	protected void onPostExecute(String result){
-		MainActivity.checkLogin(sqlResult);
-	}
+
 }
