@@ -8,6 +8,7 @@ public class TextMessage implements Serializable{
 	 * 
 	 */
 	private static final long serialVersionUID = 2147500987192903441L;
+	public int _id;
 	private Contact sender;
 	private Contact receiver;
 	private String content;
