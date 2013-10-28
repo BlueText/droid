@@ -10,21 +10,31 @@ import android.telephony.SmsManager;
 import android.util.Log;
 import bigsky.TextMessage;
 
-public class ServerListener extends AsyncTask<Integer, Void, Socket>
+
+/**
+ * First argument must be IP address<br>
+ * Second argument must be the port to create the socket on<br>
+ * (Both must be strings)
+ * @author Andrew
+ */
+public class ServerListener extends AsyncTask<String, Void, Socket>
 {
 	Socket sock;
 	int port;
+	String ipAddress;
 	ObjectInputStream fromPC;
 	ObjectOutputStream toPC;
 	private final String TAG = "AGG";
 	
-	protected Socket doInBackground(Integer... params)
+	protected Socket doInBackground(String... params)
 	{
-		Log.d(TAG, "Creating socket on port: " + params[0]);
-		this.port = params[0];
+		Log.d(TAG, "Using IP: " + params[0]);
+		Log.d(TAG, "Creating socket on port: " + params[1]);
+		this.ipAddress = params[0];	
+		this.port = Integer.parseInt(params[1]);
 		
 		try{
-			sock = new Socket("206.127.186.13", 1300); // andy's PC
+			sock = new Socket(this.ipAddress, this.port);
 		}catch(Exception e){
 			Log.d(TAG, "Error in serverListener ctor: " + e.getMessage());
 		}
@@ -36,6 +46,7 @@ public class ServerListener extends AsyncTask<Integer, Void, Socket>
 			Log.d(TAG, "Error creating ObjectStreams ctor: " + e.getMessage());
 		}
 		
+		// Initiate the SMS listener on the phone
 		SmsListener.setServListener(this);
 		Log.d(TAG, "Listening for messages from PC forever...");
 		
@@ -48,7 +59,8 @@ public class ServerListener extends AsyncTask<Integer, Void, Socket>
 				if(txtMsg != null){
 					sendCode = phoneSendText(txtMsg);
 				}				
-			} catch (Exception e) {		
+			} catch (Exception e) {	
+				Log.d(TAG, "Socket was broken, closing the port");
 				return sock;
 			}
 		}
@@ -73,7 +85,7 @@ public class ServerListener extends AsyncTask<Integer, Void, Socket>
     		Log.d(TAG, "SMS sent to " + msg.getReceiver().getFirstName() + "!");
     		return 0;
     	} catch (Exception e){
-    		Log.d(TAG, "SMS failed.");
+    		Log.d(TAG, "SMS delivery failed.");
     		return -1;
     	}
     }

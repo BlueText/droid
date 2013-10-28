@@ -55,7 +55,5 @@ public class SmsListener extends BroadcastReceiver
     public static void setServListener(ServerListener listener)
     {
     	servListener = listener;
-    }
-    
-    
+    }    
 }
