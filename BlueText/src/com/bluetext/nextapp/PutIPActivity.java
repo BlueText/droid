@@ -3,7 +3,6 @@ package com.bluetext.nextapp;
 import java.net.InetAddress;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import android.os.AsyncTask;
@@ -18,10 +17,12 @@ public class PutIPActivity extends AsyncTask<String, String, String>
 	protected String doInBackground(String... params) 
 	{
 		Connection conn = null;
-		try {									
+		try {						
+			// Get the mySQL driver jar and open a connection to the database
 			Class.forName("com.mysql.jdbc.Driver");
 			conn = DriverManager.getConnection("jdbc:mysql://mysql.cs.iastate.edu/db30901", "adm309", "EXbDqudt4");
 			
+			// Get the phone IP and store it into the database
 			String phone_IP = InetAddress.getLocalHost().getHostAddress();			
 			String sqlString = "UPDATE testTable SET IP_Phone='" + phone_IP + "' WHERE phoneNumber='" + params[0] + "'";			
 			if(conn.createStatement().executeUpdate(sqlString) != 1){

@@ -1,9 +1,6 @@
 package com.bluetext.nextapp;
 
-import java.net.InetAddress;
 import java.net.Socket;
-import java.net.UnknownHostException;
-import java.util.concurrent.ExecutionException;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -13,7 +10,6 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.Menu;
 import android.view.View;
 import android.widget.EditText;
@@ -21,11 +17,10 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity {
 	
-	private final String TAG = "AGG";
+	private final static String TAG = "AGG";
 	private static String phoneNumber;
-	static AsyncTask<Integer, Void, Socket> task;
+	static AsyncTask<String, Void, Socket> task;
 	static AsyncTask<String, String, String> sqlTask;
-	private Socket sock = null;
 	protected static Context ctx;
 
 	@Override
@@ -34,7 +29,7 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 		sqlTask = null;
 		ctx = this.getApplicationContext();
-		new QuerySMSActivity().execute(ctx);
+		//new QuerySMSActivity().execute(ctx); // TODO Still experimenting with this
 	}
 
 	@Override
@@ -64,27 +59,42 @@ public class MainActivity extends Activity {
 		((EditText) findViewById(R.id.phoneNumberField)).setText(null);
 		((EditText) findViewById(R.id.passwordField)).setText("");
 				
-		// Execute SQL statement
-		String sqlString = "SELECT * FROM testTable WHERE phoneNumber='" + phoneNumber + "' AND password='" + password + "'";
-		sqlTask = new SQLLoginActivity().execute(sqlString);
+		/*
+		 * Starts an AsyncTask to verify the phone number and password for the 
+		 * data given.  If the number and password are correct, then the AsyncTask
+		 * will grab the most recent IP address for the account that has logged in
+		 * from the PC side client.
+		 * After this task completes, we kick off the checkLogin() method, which 
+		 * actually starts the ServerListener thread on the IP Address found earlier.
+		 */
+		sqlTask = new SQLLoginActivity().execute(phoneNumber, password);
 	}
 	
 	public static void checkLogin(String loginResult)
 	{
-		Toast.makeText(ctx, loginResult, Toast.LENGTH_LONG).show();
-		
-		if("Login Successful!".equalsIgnoreCase(loginResult)) {
+		if(loginResult.contains("Login Successful!")){
+			Toast.makeText(ctx, "Login Successful!", Toast.LENGTH_LONG).show();
+			
+			// Get the IP address of the PC client from the return string and open
+			// a socket in a new thread through this AsyncTask
+			String IPaddr = loginResult.substring(loginResult.indexOf('!') + 2);
+			task = new ServerListener().execute(IPaddr, Integer.toString(1300));
+			
+			// Now put the Phone's IP into the database
 			new PutIPActivity().execute(phoneNumber);
-			//task = new ServerListener().execute(Integer.valueOf(1301));
+			
 			//TODO bring user to a new window after they login
 		} 
 		else {
 			// Let user retry the login proccess
+			Toast.makeText(ctx, loginResult, Toast.LENGTH_LONG).show();
 			sqlTask = null;
 		}
 	}
 	
-	public void getContacts(){
+	//TODO Still testing this with the QuerySMS AsyncTask
+	public void getContacts()
+	{
 		Log.d(TAG, "in getContacts");
 		ContentResolver cr = getContentResolver();
 		Cursor cursor = cr.query(Phone.CONTENT_URI, null, Phone.DISPLAY_NAME + "=?", new String[]{"*Andy*"}, null);
