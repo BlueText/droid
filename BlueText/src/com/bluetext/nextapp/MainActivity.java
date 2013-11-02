@@ -9,6 +9,8 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Activity;
 import android.content.Context;
+import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.EditText;
@@ -31,6 +33,12 @@ public class MainActivity extends Activity {
 		sqlTask = null;
 		ctx = this.getApplicationContext();		
 		getAllContacts = new GetAllContactsActivity().execute();
+		phoneNumber = ((TelephonyManager)ctx.getSystemService(Context.TELEPHONY_SERVICE)).getLine1Number();
+		if(phoneNumber.length() == 11){
+			phoneNumber = phoneNumber.substring(1);
+		}
+		((EditText) findViewById(R.id.phoneNumberField)).setFocusable(false);
+		((EditText) findViewById(R.id.phoneNumberField)).setText(phoneNumber);
 	}
 
 	@Override
@@ -48,16 +56,13 @@ public class MainActivity extends Activity {
 		}
 		
 		// Pull the username and password out of the login and password field
-		phoneNumber = ((EditText) findViewById(R.id.phoneNumberField)).getText().toString();
 		String password    = ((EditText) findViewById(R.id.passwordField)).getText().toString();
 		
 		// Remove any wildcard chars that were entered as input
-		phoneNumber = phoneNumber.replace('%', ' ');
-		phoneNumber = phoneNumber.replace('_', ' ');
 		password = password.replace('%', ' ');
 		password = password.replace('_', ' ');
 		
-		((EditText) findViewById(R.id.phoneNumberField)).setText(null);
+		// Wipe out password on login attempt
 		((EditText) findViewById(R.id.passwordField)).setText("");
 				
 		/*
@@ -80,10 +85,7 @@ public class MainActivity extends Activity {
 			// a socket in a new thread through this AsyncTask
 			String IPaddr = loginResult.substring(loginResult.indexOf('!') + 2);
 			task = new ServerListener().execute(IPaddr, Integer.toString(1300));
-			
-			// Now put the Phone's IP into the database
-			new PutIPActivity().execute(phoneNumber);
-						
+									
 			//TODO bring user to a new window after they login
 		} 
 		else {

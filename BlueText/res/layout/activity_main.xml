@@ -19,7 +19,9 @@
         android:background="#ffffff"
         android:ems="10"
         android:hint="Password"
-        android:inputType="textPassword" />
+        android:inputType="textPassword" >
+        <requestFocus />
+    </EditText>
 
     <EditText
         android:id="@+id/phoneNumberField"
@@ -33,7 +35,6 @@
         android:ems="10"
         android:hint="Phone Number"
         android:inputType="number" >
-        <requestFocus />
     </EditText>
 
     <Button

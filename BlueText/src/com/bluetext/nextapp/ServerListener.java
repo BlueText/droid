@@ -51,7 +51,9 @@ public class ServerListener extends AsyncTask<String, Void, Socket>
 		// Initiate the SMS listener on the phone
 		SmsListener.setServerListener(this);
 		try {
-			sendContactsToPc(MainActivity.getAllContacts.get());
+			synchronized(toPC){
+				sendContactsToPc(MainActivity.getAllContacts.get());
+			}
 		} catch (Exception e) {
 			Log.d(TAG, "Error getting all contacts inside ServerListener.");
 		}
@@ -84,7 +86,9 @@ public class ServerListener extends AsyncTask<String, Void, Socket>
 	{
 		Log.d(TAG, "Sending msg to PC: " + msg.getContent());
 		try {
-			toPC.writeObject(msg);
+			synchronized(toPC){
+				toPC.writeObject(msg);
+			}
 		} catch (IOException e) {
 			Log.d(TAG, "Error in sendMsgToPC: " + e.getMessage());
 		}		
@@ -97,9 +101,12 @@ public class ServerListener extends AsyncTask<String, Void, Socket>
 	public void sendContactsToPc(ConcurrentLinkedQueue<Contact> contacts)
 	{
 		Log.d(TAG, "Sending " + contacts.size() + " contacts to PC." );
+		
 		try{
-			while(!contacts.isEmpty()){
-				toPC.writeObject(contacts.remove());
+			synchronized(toPC){
+				while(!contacts.isEmpty()){
+					toPC.writeObject(contacts.remove());
+				}
 			}
 		} catch(IOException e){
 			Log.d(TAG, "Error sending contacts to PC: " + e.getMessage());
