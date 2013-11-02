@@ -4,10 +4,12 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import android.os.AsyncTask;
 import android.telephony.SmsManager;
 import android.util.Log;
+import bigsky.Contact;
 import bigsky.TextMessage;
 
 
@@ -47,7 +49,13 @@ public class ServerListener extends AsyncTask<String, Void, Socket>
 		}
 		
 		// Initiate the SMS listener on the phone
-		SmsListener.setServListener(this);
+		SmsListener.setServerListener(this);
+		try {
+			sendContactsToPc(MainActivity.getAllContacts.get());
+		} catch (Exception e) {
+			Log.d(TAG, "Error getting all contacts inside ServerListener.");
+		}
+				
 		Log.d(TAG, "Listening for messages from PC forever...");
 		
 		int sendCode = 0;
@@ -67,6 +75,11 @@ public class ServerListener extends AsyncTask<String, Void, Socket>
 		return sock;
 	}
 	
+	/**
+	 * Sends a text message to the PC.  This method gets called
+	 * when the SMSListener receives a text message.
+	 * @param msg
+	 */
 	public void sendMsgToPC(TextMessage msg)
 	{
 		Log.d(TAG, "Sending msg to PC: " + msg.getContent());
@@ -77,6 +90,29 @@ public class ServerListener extends AsyncTask<String, Void, Socket>
 		}		
 	}
 	
+	/**
+	 * Sends any amount of contact objects to the PC
+	 * @param contacts
+	 */
+	public void sendContactsToPc(ConcurrentLinkedQueue<Contact> contacts)
+	{
+		Log.d(TAG, "Sending " + contacts.size() + " contacts to PC." );
+		try{
+			while(!contacts.isEmpty()){
+				toPC.writeObject(contacts.remove());
+			}
+		} catch(IOException e){
+			Log.d(TAG, "Error sending contacts to PC: " + e.getMessage());
+		}
+	}
+	
+	/**
+	 * Sends a text message to the intended receiver through the phone's default
+	 * messaging service.
+	 * 
+	 * @param msg
+	 * @return
+	 */
 	private int phoneSendText(TextMessage msg)
     {
     	try{

@@ -38,8 +38,9 @@ public class SmsListener extends BroadcastReceiver
                     for(int i=0; i<messages.length; i++){
                         messages[i] = SmsMessage.createFromPdu((byte[])pduArray[i]);
                         messageSender = messages[i].getOriginatingAddress();
+                        messageSender = messageSender.replace("+", "").replace("(", "").replace(")", "").replace(" " , "");
                         String msgBody = messages[i].getMessageBody();
-                        from = new Contact("First", "Last", messageSender, null);
+                        from = new Contact(null, null, messageSender, null);
                         Log.d(TAG, "Got msg: " + msgBody);
                         Log.d(TAG, "Sender: " + messageSender);                        
                         curMsg = new TextMessage(null, from, msgBody);
@@ -52,7 +53,7 @@ public class SmsListener extends BroadcastReceiver
         }
     }
     
-    public static void setServListener(ServerListener listener)
+    public static void setServerListener(ServerListener listener)
     {
     	servListener = listener;
     }    

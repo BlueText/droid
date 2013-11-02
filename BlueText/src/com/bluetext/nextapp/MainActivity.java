@@ -1,15 +1,14 @@
 package com.bluetext.nextapp;
 
 import java.net.Socket;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
+import bigsky.Contact;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.app.Activity;
-import android.content.ContentResolver;
 import android.content.Context;
-import android.database.Cursor;
-import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.EditText;
@@ -17,10 +16,12 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity {
 	
+	@SuppressWarnings("unused")
 	private final static String TAG = "AGG";
 	private static String phoneNumber;
 	static AsyncTask<String, Void, Socket> task;
 	static AsyncTask<String, String, String> sqlTask;
+	static AsyncTask<Object, Void, ConcurrentLinkedQueue<Contact>> getAllContacts;
 	protected static Context ctx;
 
 	@Override
@@ -28,8 +29,8 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		sqlTask = null;
-		ctx = this.getApplicationContext();
-		//new QuerySMSActivity().execute(ctx); // TODO Still experimenting with this
+		ctx = this.getApplicationContext();		
+		getAllContacts = new GetAllContactsActivity().execute();
 	}
 
 	@Override
@@ -82,29 +83,13 @@ public class MainActivity extends Activity {
 			
 			// Now put the Phone's IP into the database
 			new PutIPActivity().execute(phoneNumber);
-			
+						
 			//TODO bring user to a new window after they login
 		} 
 		else {
 			// Let user retry the login proccess
 			Toast.makeText(ctx, loginResult, Toast.LENGTH_LONG).show();
 			sqlTask = null;
-		}
-	}
-	
-	//TODO Still testing this with the QuerySMS AsyncTask
-	public void getContacts()
-	{
-		Log.d(TAG, "in getContacts");
-		ContentResolver cr = getContentResolver();
-		Cursor cursor = cr.query(Phone.CONTENT_URI, null, Phone.DISPLAY_NAME + "=?", new String[]{"*Andy*"}, null);
-		
-		if(cursor.getCount() > 0){
-		    cursor.moveToFirst();
-		    do {
-		       String number = cursor.getString(cursor.getColumnIndex(Phone.NUMBER));
-		       Log.d(TAG, "Andys number is: " + number);
-		    }while (cursor.moveToNext() ); 
 		}
 	}	
 }
