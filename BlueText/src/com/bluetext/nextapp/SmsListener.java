@@ -2,6 +2,7 @@ package com.bluetext.nextapp;
 
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -16,11 +17,9 @@ import bigsky.TextMessage;
 public class SmsListener extends BroadcastReceiver
 {
     @SuppressWarnings("unused")
-	private SharedPreferences preferences;
     private final String TAG = "AGG";
     private static ServerListener servListener = null;
-    Queue<TextMessage> messageQueue = new LinkedList<TextMessage>();
-    Contact andy = new Contact("Andy", "Guibert", "15072542815", null);
+    private static ConcurrentLinkedQueue<TextMessage> messageQueue = new ConcurrentLinkedQueue<TextMessage>();
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -37,14 +36,22 @@ public class SmsListener extends BroadcastReceiver
                     messages = new SmsMessage[pduArray.length];
                     for(int i=0; i<messages.length; i++){
                         messages[i] = SmsMessage.createFromPdu((byte[])pduArray[i]);
-                        messageSender = messages[i].getOriginatingAddress();
-                        messageSender = messageSender.replace("+", "").replace("(", "").replace(")", "").replace(" " , "");
+                        messageSender = formatPhoneNumber(messages[i].getOriginatingAddress().toCharArray());
                         String msgBody = messages[i].getMessageBody();
-                        from = new Contact(null, null, messageSender, null);
+                        from = Global.numberToContact.get(messageSender);
                         Log.d(TAG, "Got msg: " + msgBody);
-                        Log.d(TAG, "Sender: " + messageSender);                        
-                        curMsg = new TextMessage(null, from, msgBody);
-                        servListener.sendMsgToPC(curMsg);                        
+                        Log.d(TAG, "Sender: " + from.getFirstName() + " " + from.getLastName());                        
+                        curMsg = new TextMessage(from, null, msgBody);
+                        if(servListener != null){
+                        	while(!messageQueue.isEmpty()){
+                        		Log.d(TAG, "Sending queued message to PC.");
+                        		servListener.sendMsgToPC(messageQueue.remove());
+                        	}
+                        	servListener.sendMsgToPC(curMsg);
+                        }  
+                        else{
+                        	messageQueue.add(curMsg);
+                        }
                     }
                 }catch(Exception e){
                 	Log.d(TAG, "Error in SMSListener: " + e.getMessage());
@@ -56,5 +63,24 @@ public class SmsListener extends BroadcastReceiver
     public static void setServerListener(ServerListener listener)
     {
     	servListener = listener;
-    }    
+    }   
+    
+    /**
+	 * Formats a phone number string by removing any non-numerical chars
+	 * @param no
+	 * @return
+	 */
+	private String formatPhoneNumber(char[] no){
+		StringBuffer sb = new StringBuffer();
+		for(char c : no){
+			if(c >= '0' && c <= '9'){
+				sb.append(c);
+			}
+		}
+		// Remove the country code for US numbers
+		if(sb.length() == 11 && sb.charAt(0) == '1'){
+			return sb.substring(1);
+		}
+		return sb.toString();
+	}
 }

@@ -81,6 +81,15 @@ public class GetAllContactsActivity extends AsyncTask<Object, Void, ConcurrentLi
 		Log.d(TAG, "QuerySMSActivity contactListSize: " + contactList.size());
 		return contactList;
 	}
+	
+	/**
+	 * Add results to the HashMap for use later
+	 */
+	protected void onPostExecute(ConcurrentLinkedQueue<Contact> result){
+		for(Contact c : result){
+			Global.numberToContact.put(c.getPhoneNumber(), c);
+		}
+	}
 		
 	@SuppressWarnings("unused")
 	private void log10Columns2(Cursor cursor)
@@ -112,6 +121,10 @@ public class GetAllContactsActivity extends AsyncTask<Object, Void, ConcurrentLi
 			if(c >= '0' && c <= '9'){
 				sb.append(c);
 			}
+		}
+		// Remove the country code for US numbers
+		if(sb.length() == 11 && sb.charAt(0) == '1'){
+			return sb.substring(1);
 		}
 		return sb.toString();
 	}

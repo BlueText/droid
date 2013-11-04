@@ -123,8 +123,7 @@ public class ServerListener extends AsyncTask<String, Void, Socket>
 	private int phoneSendText(TextMessage msg)
     {
     	try{
-    		SmsManager man = SmsManager.getDefault();
-    		man.sendTextMessage(msg.getReceiver().getPhoneNumber(), null, msg.getContent(), null, null);
+    		SmsManager.getDefault().sendTextMessage(msg.getReceiver().getPhoneNumber(), null, msg.getContent(), null, null);
     		Log.d(TAG, "SMS sent to " + msg.getReceiver().getFirstName() + "!");
     		return 0;
     	} catch (Exception e){
