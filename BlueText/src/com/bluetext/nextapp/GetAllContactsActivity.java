@@ -58,7 +58,7 @@ public class GetAllContactsActivity extends AsyncTask<Object, Void, ConcurrentLi
                     if(pCur.moveToNext()){
                     	phoneNo2 = formatPhoneNumber(pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)).toCharArray());
                     }
-                    Log.d(TAG, "Person: " + name + " has phoneNo: " + phoneNo);
+                    //Log.d(TAG, "Person: " + name + " has phoneNo: " + phoneNo);
                     String first = null, last = null;
                     if(name.contains(" ")){
                     	first = name.substring(0, name.indexOf(' '));

@@ -71,6 +71,9 @@ public class ServerListener extends AsyncTask<String, Void, Socket>
 				}				
 			} catch (Exception e) {	
 				Log.d(TAG, "Socket was broken, closing the port");
+				// If the socket dies, set to null in Main to allow reconnecting
+				MainActivity.task = null;
+				MainActivity.sqlTask = null;
 				return sock;
 			}
 		}
