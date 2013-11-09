@@ -1,6 +1,5 @@
 package com.bluetext.nextapp;
 
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
@@ -9,6 +8,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import android.os.AsyncTask;
 import android.telephony.SmsManager;
 import android.util.Log;
+import bigsky.BlueTextRequest;
 import bigsky.Contact;
 import bigsky.TextMessage;
 
@@ -24,8 +24,8 @@ public class ServerListener extends AsyncTask<String, Void, Socket>
 	Socket sock;
 	int port;
 	String ipAddress;
-	ObjectInputStream fromPC;
-	ObjectOutputStream toPC;
+	static ObjectInputStream fromPC;
+	static ObjectOutputStream toPC;
 	private final String TAG = "AGG";
 	
 	protected Socket doInBackground(String... params)
@@ -50,25 +50,36 @@ public class ServerListener extends AsyncTask<String, Void, Socket>
 		
 		// Initiate the SMS listener on the phone
 		SmsListener.setServerListener(this);
+		BlueTextRequestActivity.setServerListener(this);
 		try {
-			synchronized(toPC){
-				sendContactsToPc(MainActivity.getAllContacts.get());
-			}
+			sendContactsToPc(MainActivity.getAllContacts.get());
 		} catch (Exception e) {
 			Log.d(TAG, "Error getting all contacts inside ServerListener.");
 		}
+		
 				
 		Log.d(TAG, "Listening for messages from PC forever...");
 		
 		int sendCode = 0;
-		TextMessage txtMsg = null;
 		while(fromPC != null && sendCode == 0)
 		{
 			try {
-				txtMsg = (TextMessage) fromPC.readObject();
-				if(txtMsg != null){
-					sendCode = phoneSendText(txtMsg);
-				}				
+				Object streamObject = fromPC.readObject();
+				if(streamObject instanceof TextMessage)
+				{
+					TextMessage txtMsg = (TextMessage) streamObject;
+					if(txtMsg != null){
+						sendCode = phoneSendText(txtMsg);
+					}
+				}
+				else if(streamObject instanceof BlueTextRequest){
+					BlueTextRequest request = (BlueTextRequest) streamObject;
+					new BlueTextRequestActivity().executeOnExecutor(THREAD_POOL_EXECUTOR, request);
+				}
+				else{
+					Log.d(TAG, "Unknown class was sent through the stream: " + streamObject.toString());
+				}
+								
 			} catch (Exception e) {	
 				Log.d(TAG, "Socket was broken, closing the port");
 				// If the socket dies, set to null in Main to allow reconnecting
@@ -81,23 +92,6 @@ public class ServerListener extends AsyncTask<String, Void, Socket>
 	}
 	
 	/**
-	 * Sends a text message to the PC.  This method gets called
-	 * when the SMSListener receives a text message.
-	 * @param msg
-	 */
-	public void sendMsgToPC(TextMessage msg)
-	{
-		Log.d(TAG, "Sending msg to PC: " + msg.getContent());
-		try {
-			synchronized(toPC){
-				toPC.writeObject(msg);
-			}
-		} catch (IOException e) {
-			Log.d(TAG, "Error in sendMsgToPC: " + e.getMessage());
-		}		
-	}
-	
-	/**
 	 * Sends any amount of contact objects to the PC
 	 * @param contacts
 	 */
@@ -105,14 +99,18 @@ public class ServerListener extends AsyncTask<String, Void, Socket>
 	{
 		Log.d(TAG, "Sending " + contacts.size() + " contacts to PC." );
 		
+		while(!contacts.isEmpty()){
+			sendObjectToPC(contacts.remove());
+		}
+	}
+	
+	public synchronized void sendObjectToPC(Object o)
+	{
 		try{
-			synchronized(toPC){
-				while(!contacts.isEmpty()){
-					toPC.writeObject(contacts.remove());
-				}
-			}
-		} catch(IOException e){
-			Log.d(TAG, "Error sending contacts to PC: " + e.getMessage());
+			toPC.writeObject(o);
+			toPC.flush();
+		} catch(Exception e){
+			System.out.println("Got exception in ServerListener.sendObject(): " + e.getMessage());
 		}
 	}
 	
