@@ -3,6 +3,8 @@ package com.bluetext.nextapp;
 import java.net.Socket;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import bigsky.BlueTextRequest;
+import bigsky.BlueTextResponse;
 import bigsky.Contact;
 
 import android.os.AsyncTask;
@@ -23,8 +25,9 @@ public class MainActivity extends Activity {
 	private static String phoneNumber;
 	static AsyncTask<String, Void, Socket> task;
 	static AsyncTask<String, String, String> sqlTask;
-	static AsyncTask<Object, Void, ConcurrentLinkedQueue<Contact>> getAllContacts;
+	static AsyncTask<Object, Void, ConcurrentLinkedQueue<Contact>> getAllContacts = null;
 	protected static Context ctx;
+	public static Contact userContact;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +42,8 @@ public class MainActivity extends Activity {
 		}
 		((EditText) findViewById(R.id.phoneNumberField)).setFocusable(false);
 		((EditText) findViewById(R.id.phoneNumberField)).setText(phoneNumber);
+		
+		userContact = new Contact(null, null, phoneNumber, null);
 	}
 
 	@Override
@@ -85,7 +90,7 @@ public class MainActivity extends Activity {
 			// a socket in a new thread through this AsyncTask
 			String IPaddr = loginResult.substring(loginResult.indexOf('!') + 2);
 			task = new ServerListener().execute(IPaddr, Integer.toString(1300));
-									
+			
 			//TODO bring user to a new window after they login
 		} 
 		else {

@@ -12,11 +12,7 @@ import android.provider.ContactsContract.PhoneLookup;
 import android.util.Log;
 
 /**
- * Queries the phone for text message objects
- * @param objects...
- *        objects[0] Context: the Context of the caller
- *        objects[1] String:  the phone number of the contact to retrieve the history of
- *        objects[2] Integer: the number of messages to retrieve 
+ * Queries the phone for all existing contacts that have a phone number
  * @author Andrew
  */
 public class GetAllContactsActivity extends AsyncTask<Object, Void, ConcurrentLinkedQueue<Contact>>

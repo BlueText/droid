@@ -41,13 +41,13 @@ public class SmsListener extends BroadcastReceiver
                         from = Global.numberToContact.get(messageSender);
                         Log.d(TAG, "Got msg: " + msgBody);
                         Log.d(TAG, "Sender: " + from.getFirstName() + " " + from.getLastName());                        
-                        curMsg = new TextMessage(from, null, msgBody);
+                        curMsg = new TextMessage(from, MainActivity.userContact, msgBody);
                         if(servListener != null){
                         	while(!messageQueue.isEmpty()){
                         		Log.d(TAG, "Sending queued message to PC.");
-                        		servListener.sendMsgToPC(messageQueue.remove());
+                        		servListener.sendObjectToPC(messageQueue.remove());
                         	}
-                        	servListener.sendMsgToPC(curMsg);
+                        	servListener.sendObjectToPC(curMsg);
                         }  
                         else{
                         	messageQueue.add(curMsg);
