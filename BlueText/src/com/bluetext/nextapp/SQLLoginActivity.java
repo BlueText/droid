@@ -16,6 +16,7 @@ public class SQLLoginActivity extends AsyncTask<String, String, String>
 	String phoneNumber;
 	String password;
 	String IPaddr;
+	public static MainActivity ma;
 	
 	@Override
 	protected String doInBackground(String... params) 
@@ -75,6 +76,6 @@ public class SQLLoginActivity extends AsyncTask<String, String, String>
 	}
 	
 	protected void onPostExecute(String result){
-		MainActivity.checkLogin(sqlResult);
+		ma.checkLogin(sqlResult);
 	}
 }
