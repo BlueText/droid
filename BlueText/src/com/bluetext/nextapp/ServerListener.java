@@ -1,8 +1,10 @@
 package com.bluetext.nextapp;
 
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.sql.SQLException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import android.os.AsyncTask;
@@ -27,6 +29,7 @@ public class ServerListener extends AsyncTask<String, Void, Socket>
 	static ObjectInputStream fromPC;
 	static ObjectOutputStream toPC;
 	private final String TAG = "AGG";
+	public static PostLoginActivity pla;
 	
 	protected Socket doInBackground(String... params)
 	{
@@ -85,7 +88,35 @@ public class ServerListener extends AsyncTask<String, Void, Socket>
 				// If the socket dies, set to null in Main to allow reconnecting
 				MainActivity.task = null;
 				MainActivity.sqlTask = null;
+				// If the PC side broke the stream, take us back to login window
+				if(pla != null){
+					pla.finish();
+				}
 				return sock;
+			} finally{
+				String cleanUpStatus = "Socket cleanup Status: ";
+				try{
+					cleanUpStatus += "InputStream=";
+					fromPC.close();
+					cleanUpStatus += "SUCCESS   ";
+				} catch(IOException e){
+					cleanUpStatus += "FAILED   ";
+				}
+				try{
+					cleanUpStatus += "OutputStream=";
+					toPC.close();
+					cleanUpStatus += "SUCCESS   ";
+				} catch(IOException e){
+					cleanUpStatus += "FAILED   ";
+				}
+				try{
+					cleanUpStatus += "Socket=";
+					sock.close();
+					cleanUpStatus += "SUCCESS";
+				} catch(IOException e){
+					cleanUpStatus += "FAILED";
+				}			
+				Log.d(TAG, cleanUpStatus);
 			}
 		}
 		return sock;
