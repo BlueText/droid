@@ -11,6 +11,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.Menu;
@@ -33,7 +34,10 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		
+		SQLLoginActivity.ma = this;
 		sqlTask = null;
+		
 		ctx = this.getApplicationContext();		
 		getAllContacts = new GetAllContactsActivity().execute();
 		phoneNumber = ((TelephonyManager)ctx.getSystemService(Context.TELEPHONY_SERVICE)).getLine1Number();
@@ -43,7 +47,8 @@ public class MainActivity extends Activity {
 		((EditText) findViewById(R.id.phoneNumberField)).setFocusable(false);
 		((EditText) findViewById(R.id.phoneNumberField)).setText(phoneNumber);
 		
-		userContact = new Contact(null, null, phoneNumber, null);
+		// TODO get the actual name of the user
+		userContact = new Contact("Jonathan", "Mielke", phoneNumber, null);
 	}
 
 	@Override
@@ -81,7 +86,7 @@ public class MainActivity extends Activity {
 		sqlTask = new SQLLoginActivity().execute(phoneNumber, password);
 	}
 	
-	public static void checkLogin(String loginResult)
+	public void checkLogin(String loginResult)
 	{
 		if(loginResult.contains("Login Successful!")){
 			Toast.makeText(ctx, "Login Successful!", Toast.LENGTH_LONG).show();
@@ -91,7 +96,8 @@ public class MainActivity extends Activity {
 			String IPaddr = loginResult.substring(loginResult.indexOf('!') + 2);
 			task = new ServerListener().execute(IPaddr, Integer.toString(1300));
 			
-			//TODO bring user to a new window after they login
+			Intent i = new Intent(getApplicationContext(), PostLoginActivity.class);
+			startActivity(i);
 		} 
 		else {
 			// Let user retry the login proccess
