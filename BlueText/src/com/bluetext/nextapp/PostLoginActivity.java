@@ -25,6 +25,7 @@ public class PostLoginActivity extends Activity {
 			ServerListener.fromPC.close();
 			ServerListener.toPC.close();
 		} catch (IOException e) {}
+    	MainActivity.getAllContacts = new GetAllContactsActivity().execute();
     	finish();
 	}
 }

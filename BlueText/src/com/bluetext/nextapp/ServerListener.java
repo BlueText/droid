@@ -90,6 +90,7 @@ public class ServerListener extends AsyncTask<String, Void, Socket>
 				MainActivity.sqlTask = null;
 				// If the PC side broke the stream, take us back to login window
 				if(pla != null){
+					MainActivity.getAllContacts = new GetAllContactsActivity().execute();
 					pla.finish();
 				}
 				

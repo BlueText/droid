@@ -26,7 +26,7 @@ public class MainActivity extends Activity {
 	private static String phoneNumber;
 	static AsyncTask<String, Void, Socket> task;
 	static AsyncTask<String, String, String> sqlTask;
-	static AsyncTask<Object, Void, ConcurrentLinkedQueue<Contact>> getAllContacts = null;
+	static AsyncTask<Object, Void, ConcurrentLinkedQueue<Contact>> getAllContacts;
 	protected static Context ctx;
 	public static Contact userContact;
 
