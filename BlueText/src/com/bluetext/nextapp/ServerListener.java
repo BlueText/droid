@@ -92,31 +92,10 @@ public class ServerListener extends AsyncTask<String, Void, Socket>
 				if(pla != null){
 					pla.finish();
 				}
+				
+				closeStream();
+				
 				return sock;
-			} finally{
-				String cleanUpStatus = "Socket cleanup Status: ";
-				try{
-					cleanUpStatus += "InputStream=";
-					fromPC.close();
-					cleanUpStatus += "SUCCESS   ";
-				} catch(IOException e){
-					cleanUpStatus += "FAILED   ";
-				}
-				try{
-					cleanUpStatus += "OutputStream=";
-					toPC.close();
-					cleanUpStatus += "SUCCESS   ";
-				} catch(IOException e){
-					cleanUpStatus += "FAILED   ";
-				}
-				try{
-					cleanUpStatus += "Socket=";
-					sock.close();
-					cleanUpStatus += "SUCCESS";
-				} catch(IOException e){
-					cleanUpStatus += "FAILED";
-				}			
-				Log.d(TAG, cleanUpStatus);
 			}
 		}
 		return sock;
@@ -163,4 +142,31 @@ public class ServerListener extends AsyncTask<String, Void, Socket>
     		return -1;
     	}
     }
+	
+	private void closeStream()
+	{
+		String cleanUpStatus = "Socket cleanup Status: ";
+		try{
+			cleanUpStatus += "InputStream=";
+			fromPC.close();
+			cleanUpStatus += "SUCCESS   ";
+		} catch(IOException e1){
+			cleanUpStatus += "FAILED   ";
+		}
+		try{
+			cleanUpStatus += "OutputStream=";
+			toPC.close();
+			cleanUpStatus += "SUCCESS   ";
+		} catch(IOException e1){
+			cleanUpStatus += "FAILED   ";
+		}
+		try{
+			cleanUpStatus += "Socket=";
+			sock.close();
+			cleanUpStatus += "SUCCESS";
+		} catch(IOException e1){
+			cleanUpStatus += "FAILED";
+		}			
+		Log.d(TAG, cleanUpStatus);
+	}
 }

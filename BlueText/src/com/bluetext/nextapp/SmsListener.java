@@ -16,7 +16,6 @@ import bigsky.TextMessage;
 
 public class SmsListener extends BroadcastReceiver
 {
-    @SuppressWarnings("unused")
     private final String TAG = "AGG";
     private static ServerListener servListener = null;
     private static ConcurrentLinkedQueue<TextMessage> messageQueue = new ConcurrentLinkedQueue<TextMessage>();
