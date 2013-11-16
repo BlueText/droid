@@ -6,10 +6,16 @@ import bigsky.BlueTextRequest;
 import bigsky.BlueTextResponse;
 import bigsky.Contact;
 import bigsky.TextMessage;
+import android.content.ContentProviderOperation;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.provider.ContactsContract;
+import android.provider.ContactsContract.Data;
+import android.provider.ContactsContract.RawContacts;
+import android.provider.ContactsContract.CommonDataKinds.Phone;
+import android.provider.ContactsContract.CommonDataKinds.StructuredName;
 import android.util.Log;
 
 public class BlueTextRequestActivity extends AsyncTask<BlueTextRequest, Void, BlueTextResponse>
@@ -23,12 +29,21 @@ public class BlueTextRequestActivity extends AsyncTask<BlueTextRequest, Void, Bl
 	protected BlueTextResponse doInBackground(BlueTextRequest... params) 
 	{
 		ctx = MainActivity.ctx;
-		request = params[0];		
+		request = params[0];
+		if(request == null){
+			Log.d(TAG, "ERROR: got null request inside BlueTextRequestActivity");
+			return null;
+		}
 			
-		if(request.getRequest() == BlueTextRequest.REQUEST.CONTACT_CHAT_HISTORY)
+		if(BlueTextRequest.REQUEST.CONTACT_CHAT_HISTORY == request.getRequest())
 		{
-			 ArrayList<TextMessage> chatHistory = queryTextMessageHistory(request.getContact());
+			ArrayList<TextMessage> chatHistory = queryTextMessageHistory(request.getContact());
 			return new BlueTextResponse(request, chatHistory);
+		}
+		else if(BlueTextRequest.REQUEST.SUBMIT_NEW_CONTACT == request.getRequest())
+		{
+			insertNewContact(request.getContact());
+			return null;
 		}
 		
 		return null;
@@ -94,6 +109,34 @@ public class BlueTextRequestActivity extends AsyncTask<BlueTextRequest, Void, Bl
 //		}
 		
 		return toRet;
+	}
+	
+	private int insertNewContact(Contact c){
+		ArrayList<ContentProviderOperation> cpoList = new ArrayList<ContentProviderOperation>();
+		int rawContactInsertIndex = cpoList.size();
+
+		cpoList.add(ContentProviderOperation.newInsert(RawContacts.CONTENT_URI)
+		   .withValue(RawContacts.ACCOUNT_TYPE, null)
+		   .withValue(RawContacts.ACCOUNT_NAME, null )
+		   .build());
+		cpoList.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+		   .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, rawContactInsertIndex)
+		   .withValue(Data.MIMETYPE,Phone.CONTENT_ITEM_TYPE)
+		   .withValue(Phone.NUMBER, "+1" + c.getPhoneNumber())
+		   .build());
+		cpoList.add(ContentProviderOperation.newInsert(Data.CONTENT_URI)
+		   .withValueBackReference(Data.RAW_CONTACT_ID, rawContactInsertIndex)
+		   .withValue(Data.MIMETYPE,StructuredName.CONTENT_ITEM_TYPE)
+		   .withValue(StructuredName.DISPLAY_NAME, c.getFirstName() + ' ' + c.getLastName())
+		   .build());  		
+		try {
+			ServerListener.pla.getContentResolver().applyBatch(ContactsContract.AUTHORITY, cpoList);
+			Log.d(TAG, "Contact " + c.getFirstName() + ' ' + c.getLastName() + " has been added.");
+			return 0;
+		} catch (Exception e) {
+			Log.d(TAG, "exception on applyBatch()" + e.getMessage());
+			return -1;
+		}		
 	}
 	
 	public static void setServerListener(ServerListener sl){

@@ -2,22 +2,13 @@ package com.bluetext.nextapp;
 
 import java.net.Socket;
 import java.util.concurrent.ConcurrentLinkedQueue;
-
-import bigsky.BlueTextRequest;
-import bigsky.BlueTextResponse;
 import bigsky.Contact;
-
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Activity;
-import android.content.ContentResolver;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.telephony.SmsManager;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.EditText;
