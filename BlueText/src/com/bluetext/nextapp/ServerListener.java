@@ -7,6 +7,9 @@ import java.net.Socket;
 import java.sql.SQLException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import android.content.ContentResolver;
+import android.content.ContentValues;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.telephony.SmsManager;
 import android.util.Log;
@@ -30,6 +33,7 @@ public class ServerListener extends AsyncTask<String, Void, Socket>
 	static ObjectOutputStream toPC;
 	private final String TAG = "AGG";
 	public static PostLoginActivity pla;
+	public static MainActivity ma;
 	
 	protected Socket doInBackground(String... params)
 	{
@@ -50,6 +54,8 @@ public class ServerListener extends AsyncTask<String, Void, Socket>
 		}catch(Exception e){
 			Log.d(TAG, "Error creating ObjectStreams ctor: " + e.getMessage());
 		}
+		
+		ma.gotoPostLoginActivity();
 		
 		// Initiate the SMS listener on the phone
 		SmsListener.setServerListener(this);
@@ -134,14 +140,25 @@ public class ServerListener extends AsyncTask<String, Void, Socket>
 	 */
 	private int phoneSendText(TextMessage msg)
     {
+		// Actually send the text message
     	try{
     		SmsManager.getDefault().sendTextMessage(msg.getReceiver().getPhoneNumber(), null, msg.getContent(), null, null);
     		Log.d(TAG, "SMS sent to " + msg.getReceiver().getFirstName() + "!");
-    		return 0;
     	} catch (Exception e){
     		Log.d(TAG, "SMS delivery failed.");
     		return -1;
     	}
+    	
+    	// Now add the text message to the sent queue
+    	ContentValues sentSms = new ContentValues();
+    	String address = "+1" + msg.getReceiver().getPhoneNumber();
+    	sentSms.put("address", address);
+	    sentSms.put("body", msg.getContent());
+	    ContentResolver contentResolver = ma.getContentResolver();
+	    contentResolver.insert(Uri.parse("content://sms/sent"), sentSms);
+	    Log.d(TAG, "Added sent message to conversation with: " + address);
+	    
+	    return 0;
     }
 	
 	private void closeStream()

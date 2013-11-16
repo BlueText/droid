@@ -7,11 +7,15 @@ import bigsky.BlueTextRequest;
 import bigsky.BlueTextResponse;
 import bigsky.Contact;
 
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Activity;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.telephony.SmsManager;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.Menu;
@@ -89,15 +93,13 @@ public class MainActivity extends Activity {
 	public void checkLogin(String loginResult)
 	{
 		if(loginResult.contains("Login Successful!")){
-			Toast.makeText(ctx, "Login Successful!", Toast.LENGTH_LONG).show();
+			Toast.makeText(ctx, "Information correct!\nWaiting for PC login...", Toast.LENGTH_SHORT).show();
 			
 			// Get the IP address of the PC client from the return string and open
 			// a socket in a new thread through this AsyncTask
 			String IPaddr = loginResult.substring(loginResult.indexOf('!') + 2);
-			task = new ServerListener().execute(IPaddr, Integer.toString(1300));
-			
-			Intent i = new Intent(getApplicationContext(), PostLoginActivity.class);
-			startActivity(i);
+			ServerListener.ma = this;
+			task = new ServerListener().execute(IPaddr, Integer.toString(1300));			
 		} 
 		else {
 			// Let user retry the login proccess
@@ -105,4 +107,9 @@ public class MainActivity extends Activity {
 			sqlTask = null;
 		}
 	}	
+	
+	public void gotoPostLoginActivity(){
+		Intent i = new Intent(getApplicationContext(), PostLoginActivity.class);
+		startActivity(i);
+	}
 }
