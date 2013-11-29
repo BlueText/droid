@@ -7,15 +7,22 @@ import java.net.Socket;
 import java.sql.SQLException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.BatteryManager;
 import android.telephony.SmsManager;
 import android.util.Log;
 import bigsky.BlueTextRequest;
+import bigsky.BlueTextResponse;
 import bigsky.Contact;
 import bigsky.TextMessage;
+import bigsky.BlueTextRequest.REQUEST;
 
 
 /**
@@ -26,14 +33,16 @@ import bigsky.TextMessage;
  */
 public class ServerListener extends AsyncTask<String, Void, Socket>
 {
-	Socket sock;
+	static Socket sock;
 	int port;
 	String ipAddress;
 	static ObjectInputStream fromPC;
 	static ObjectOutputStream toPC;
-	private final String TAG = "AGG";
+	private final static String TAG = "AGG";
 	public static PostLoginActivity pla;
 	public static MainActivity ma;
+	private static int batteryLevel = -1;
+	public static Intent batteryStatus = null;
 	
 	protected Socket doInBackground(String... params)
 	{
@@ -66,6 +75,9 @@ public class ServerListener extends AsyncTask<String, Void, Socket>
 			Log.d(TAG, "Error getting all contacts inside ServerListener.");
 		}
 		
+		// Register the battery level checker
+		batteryStatus = pla.registerReceiver(batteryLevelReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+		
 				
 		Log.d(TAG, "Listening for messages from PC forever...");
 		
@@ -92,7 +104,7 @@ public class ServerListener extends AsyncTask<String, Void, Socket>
 			} catch (Exception e) {	
 				Log.d(TAG, "Socket was broken, closing the port");
 				// If the socket dies, set to null in Main to allow reconnecting
-				MainActivity.task = null;
+				MainActivity.serverListener = null;
 				MainActivity.sqlTask = null;
 				// If the PC side broke the stream, take us back to login window
 				if(pla != null){
@@ -121,7 +133,7 @@ public class ServerListener extends AsyncTask<String, Void, Socket>
 		}
 	}
 	
-	public synchronized void sendObjectToPC(Object o)
+	public synchronized static void sendObjectToPC(Object o)
 	{
 		try{
 			toPC.writeObject(o);
@@ -161,30 +173,54 @@ public class ServerListener extends AsyncTask<String, Void, Socket>
 	    return 0;
     }
 	
-	private void closeStream()
+	public static void closeStream()
 	{
+		if(pla != null) pla.unregisterReceiver(batteryLevelReceiver);
+		pla = null;
 		String cleanUpStatus = "Socket cleanup Status: ";
 		try{
 			cleanUpStatus += "InputStream=";
-			fromPC.close();
+			if(fromPC != null) fromPC.close();
 			cleanUpStatus += "SUCCESS   ";
 		} catch(IOException e1){
 			cleanUpStatus += "FAILED   ";
 		}
 		try{
 			cleanUpStatus += "OutputStream=";
-			toPC.close();
+			if(toPC != null) toPC.close();
 			cleanUpStatus += "SUCCESS   ";
 		} catch(IOException e1){
 			cleanUpStatus += "FAILED   ";
 		}
 		try{
 			cleanUpStatus += "Socket=";
-			sock.close();
+			if(sock != null) sock.close();
 			cleanUpStatus += "SUCCESS";
 		} catch(IOException e1){
 			cleanUpStatus += "FAILED";
 		}			
 		Log.d(TAG, cleanUpStatus);
 	}
+	
+	public static BroadcastReceiver batteryLevelReceiver = new BroadcastReceiver() {		
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+			int scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+			
+			// Only do this if the battery percentage has changed
+			if(batteryLevel != level)
+			{
+				batteryLevel = level;
+				if(scale != 100){
+					level = (int) ((float)level / (float)scale);
+				}
+				
+				BlueTextRequest request = new BlueTextRequest(REQUEST.BATTERY_PERCENTAGE, null);
+				BlueTextResponse response = new BlueTextResponse(request, level);	
+				sendObjectToPC(response);
+				Log.d(TAG, "Sending battery level " + level + " to PC.");
+			}
+		}
+	};
 }

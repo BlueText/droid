@@ -12,6 +12,7 @@ public class BlueTextResponse implements Serializable{
 	private final BlueTextRequest originalRequest;
 	private final REQUEST requestType;
 	private ArrayList<TextMessage> chatHistory;
+	private int batteryLevel;
 	
 	public BlueTextResponse(BlueTextRequest origReq, Object... objs){
 		this.originalRequest = origReq;
@@ -21,6 +22,9 @@ public class BlueTextResponse implements Serializable{
 		{
 			chatHistory = (ArrayList<TextMessage>) objs[0];
 		}
+		else if(BlueTextRequest.REQUEST.BATTERY_PERCENTAGE == requestType){
+			batteryLevel = (Integer) objs[0];
+		}
 	}
 	
 	public ArrayList<TextMessage> getChatHistory(){
@@ -29,5 +33,12 @@ public class BlueTextResponse implements Serializable{
 	
 	public BlueTextRequest getOriginalRequest(){
 		return this.originalRequest;
+	}
+	
+	public int getBatteryLevel(){
+		if(BlueTextRequest.REQUEST.BATTERY_PERCENTAGE != requestType){
+			throw new RuntimeException("Original request was not for battery level.");
+		}
+		return batteryLevel;
 	}
 }

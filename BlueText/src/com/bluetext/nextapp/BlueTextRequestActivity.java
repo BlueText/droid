@@ -3,14 +3,18 @@ package com.bluetext.nextapp;
 import java.util.ArrayList;
 
 import bigsky.BlueTextRequest;
+import bigsky.BlueTextRequest.REQUEST;
 import bigsky.BlueTextResponse;
 import bigsky.Contact;
 import bigsky.TextMessage;
 import android.content.ContentProviderOperation;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.BatteryManager;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.RawContacts;
@@ -35,15 +39,20 @@ public class BlueTextRequestActivity extends AsyncTask<BlueTextRequest, Void, Bl
 			return null;
 		}
 			
-		if(BlueTextRequest.REQUEST.CONTACT_CHAT_HISTORY == request.getRequest())
+		if(REQUEST.CONTACT_CHAT_HISTORY == request.getRequest())
 		{
 			ArrayList<TextMessage> chatHistory = queryTextMessageHistory(request.getContact());
 			return new BlueTextResponse(request, chatHistory);
 		}
-		else if(BlueTextRequest.REQUEST.SUBMIT_NEW_CONTACT == request.getRequest())
+		else if(REQUEST.SUBMIT_NEW_CONTACT == request.getRequest())
 		{
 			insertNewContact(request.getContact());
 			return null;
+		}
+		else if(REQUEST.BATTERY_PERCENTAGE == request.getRequest())
+		{
+			int batteryLevel = getBatteryLevel();
+			return new BlueTextResponse(request, batteryLevel);
 		}
 		
 		return null;
@@ -51,8 +60,39 @@ public class BlueTextRequestActivity extends AsyncTask<BlueTextRequest, Void, Bl
 	
 	protected void onPostExecute(BlueTextResponse result){
 		if(result != null){
-			listener.sendObjectToPC(result);
+			ServerListener.sendObjectToPC(result);
 		}		
+	}
+	
+	private int getBatteryLevel()
+	{
+		if(ServerListener.batteryStatus != null)
+		{
+			int level = ServerListener.batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+			int scale = ServerListener.batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+			
+			if(scale != 100){
+				level = (int) ((float)level / (float)scale);
+			}
+			
+			return level;
+		}
+		// Otherwise we need to register/unregister a new receiver... 
+		// this is expensive so we don't want to do it unless we have to
+		else
+		{
+			IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+			Intent batteryStatus = ctx.registerReceiver(null, filter);
+			
+			int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+			int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+			
+			if(scale != 100){
+				level = (int) ((float)level / (float)scale);
+			}
+			
+			return level;
+		}
 	}
 		
 	private ArrayList<TextMessage> queryTextMessageHistory(Contact c)
