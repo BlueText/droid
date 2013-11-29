@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.sql.SQLException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import android.content.BroadcastReceiver;
@@ -33,16 +32,16 @@ import bigsky.BlueTextRequest.REQUEST;
  */
 public class ServerListener extends AsyncTask<String, Void, Socket>
 {
-	static Socket sock;
-	int port;
-	String ipAddress;
-	static ObjectInputStream fromPC;
-	static ObjectOutputStream toPC;
+	private int port;
+	private static int batteryLevel = -1;
+	private String ipAddress;
 	private final static String TAG = "AGG";
+	private static Socket sock;
+	public static Intent batteryStatus = null;
+	private static ObjectInputStream fromPC;
+	private static ObjectOutputStream toPC;
 	public static PostLoginActivity pla;
 	public static MainActivity ma;
-	private static int batteryLevel = -1;
-	public static Intent batteryStatus = null;
 	
 	protected Socket doInBackground(String... params)
 	{
@@ -68,7 +67,6 @@ public class ServerListener extends AsyncTask<String, Void, Socket>
 		
 		// Initiate the SMS listener on the phone
 		SmsListener.setServerListener(this);
-		BlueTextRequestActivity.setServerListener(this);
 		try {
 			sendContactsToPc(MainActivity.getAllContacts.get());
 		} catch (Exception e) {

@@ -27,7 +27,6 @@ public class BlueTextRequestActivity extends AsyncTask<BlueTextRequest, Void, Bl
 	private final static String TAG = "AGG";
 	private Context ctx;
 	private BlueTextRequest request;
-	private static ServerListener listener;
 
 	@Override
 	protected BlueTextResponse doInBackground(BlueTextRequest... params) 
@@ -177,10 +176,6 @@ public class BlueTextRequestActivity extends AsyncTask<BlueTextRequest, Void, Bl
 			Log.d(TAG, "exception on applyBatch()" + e.getMessage());
 			return -1;
 		}		
-	}
-	
-	public static void setServerListener(ServerListener sl){
-		listener = sl;
 	}
 }
 

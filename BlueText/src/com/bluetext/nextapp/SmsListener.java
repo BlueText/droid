@@ -1,13 +1,10 @@
 package com.bluetext.nextapp;
 
-import java.util.LinkedList;
-import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.telephony.SmsMessage;
 import android.util.Log;
@@ -44,9 +41,9 @@ public class SmsListener extends BroadcastReceiver
                         if(servListener != null){
                         	while(!messageQueue.isEmpty()){
                         		Log.d(TAG, "Sending queued message to PC.");
-                        		servListener.sendObjectToPC(messageQueue.remove());
+                        		ServerListener.sendObjectToPC(messageQueue.remove());
                         	}
-                        	servListener.sendObjectToPC(curMsg);
+                        	ServerListener.sendObjectToPC(curMsg);
                         }  
                         else{
                         	messageQueue.add(curMsg);

@@ -14,6 +14,7 @@ public class BlueTextResponse implements Serializable{
 	private ArrayList<TextMessage> chatHistory;
 	private int batteryLevel;
 	
+	@SuppressWarnings("unchecked")
 	public BlueTextResponse(BlueTextRequest origReq, Object... objs){
 		this.originalRequest = origReq;
 		this.requestType = origReq.getRequest();

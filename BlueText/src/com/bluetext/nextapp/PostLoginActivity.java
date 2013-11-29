@@ -1,15 +1,11 @@
 package com.bluetext.nextapp;
 
-import java.io.IOException;
-
 import android.app.Activity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
 public class PostLoginActivity extends Activity {	
-	private static final String TAG = "AGG";
 	
     @Override
     public void onCreate(Bundle savedInstanceState) {
