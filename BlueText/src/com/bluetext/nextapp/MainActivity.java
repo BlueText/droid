@@ -2,16 +2,33 @@ package com.bluetext.nextapp;
 
 import java.net.Socket;
 import java.util.concurrent.ConcurrentLinkedQueue;
+
+import bigsky.BlueTextRequest;
+import bigsky.BlueTextRequest.REQUEST;
+import bigsky.BlueTextResponse;
 import bigsky.Contact;
+import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.BatteryManager;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.QuickContactBadge;
 import android.widget.Toast;
 
 public class MainActivity extends Activity {
@@ -19,7 +36,7 @@ public class MainActivity extends Activity {
 	@SuppressWarnings("unused")
 	private final static String TAG = "AGG";
 	private static String phoneNumber;
-	static AsyncTask<String, Void, Socket> task;
+	static AsyncTask<String, Void, Socket> serverListener;
 	static AsyncTask<String, String, String> sqlTask;
 	static AsyncTask<Object, Void, ConcurrentLinkedQueue<Contact>> getAllContacts;
 	protected static Context ctx;
@@ -79,6 +96,9 @@ public class MainActivity extends Activity {
 		 * actually starts the ServerListener thread on the IP Address found earlier.
 		 */
 		sqlTask = new SQLLoginActivity().execute(phoneNumber, password);
+		
+		//addThumbnail();
+		//Log.d(TAG, "Added image");
 	}
 	
 	public void checkLogin(String loginResult)
@@ -90,7 +110,7 @@ public class MainActivity extends Activity {
 			// a socket in a new thread through this AsyncTask
 			String IPaddr = loginResult.substring(loginResult.indexOf('!') + 2);
 			ServerListener.ma = this;
-			task = new ServerListener().execute(IPaddr, Integer.toString(1300));			
+			serverListener = new ServerListener().execute(IPaddr, Integer.toString(1300));			
 		} 
 		else {
 			// Let user retry the login proccess
@@ -102,5 +122,63 @@ public class MainActivity extends Activity {
 	public void gotoPostLoginActivity(){
 		Intent i = new Intent(getApplicationContext(), PostLoginActivity.class);
 		startActivity(i);
+	}
+	
+	private static final String[] PHOTO_ID_PROJECTION = new String[] {
+	    ContactsContract.Contacts.PHOTO_ID
+	};
+
+	private static final String[] PHOTO_BITMAP_PROJECTION = new String[] {
+	    ContactsContract.CommonDataKinds.Photo.PHOTO
+	};
+	
+//	public void addThumbnail() {		
+//		ImageView iv = (ImageView)findViewById(R.id.imageView1);
+//	    final Integer thumbnailId = fetchThumbnailId();
+//	    if (thumbnailId != null) {
+//	        final Bitmap thumbnail = fetchThumbnail(thumbnailId);
+//	        if (thumbnail != null) {
+//	            iv.setImageBitmap(thumbnail);
+//	        }
+//	    }
+//
+//	}
+
+	private Integer fetchThumbnailId() {
+		ContentResolver contentResolver = getContentResolver();
+	    final Uri uri = Uri.withAppendedPath(ContactsContract.CommonDataKinds.Phone.CONTENT_FILTER_URI, Uri.encode("5072542815"));
+	    final Cursor cursor = contentResolver.query(uri, PHOTO_ID_PROJECTION, null, null, ContactsContract.Contacts.DISPLAY_NAME + " ASC");
+
+	    try {
+	        Integer thumbnailId = null;
+	        if (cursor.moveToFirst()) {
+	            thumbnailId = cursor.getInt(cursor.getColumnIndex(ContactsContract.Contacts.PHOTO_ID));
+	        }
+	        return thumbnailId;
+	    }
+	    finally {
+	        cursor.close();
+	    }
+
+	}
+
+	final Bitmap fetchThumbnail(final int thumbnailId) {
+		ContentResolver contentResolver = getContentResolver();
+	    final Uri uri = ContentUris.withAppendedId(ContactsContract.Data.CONTENT_URI, thumbnailId);
+	    final Cursor cursor = contentResolver.query(uri, PHOTO_BITMAP_PROJECTION, null, null, null);
+
+	    try {
+	        Bitmap thumbnail = null;
+	        if (cursor.moveToFirst()) {
+	            final byte[] thumbnailBytes = cursor.getBlob(0);
+	            if (thumbnailBytes != null) {
+	                thumbnail = BitmapFactory.decodeByteArray(thumbnailBytes, 0, thumbnailBytes.length);
+	            }
+	        }
+	        return thumbnail;
+	    }
+	    finally {
+	        cursor.close();
+	    }
 	}
 }
