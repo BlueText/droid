@@ -173,7 +173,7 @@ public class ServerListener extends AsyncTask<String, Void, Socket>
 	
 	public static void closeStream()
 	{
-		if(pla != null) pla.unregisterReceiver(batteryLevelReceiver);
+		if(pla != null && batteryLevelReceiver != null) pla.unregisterReceiver(batteryLevelReceiver);
 		pla = null;
 		String cleanUpStatus = "Socket cleanup Status: ";
 		try{

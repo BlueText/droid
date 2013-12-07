@@ -1,5 +1,7 @@
 package com.bluetext.nextapp;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 
 import bigsky.BlueTextRequest;
@@ -8,26 +10,43 @@ import bigsky.BlueTextResponse;
 import bigsky.Contact;
 import bigsky.TextMessage;
 import android.content.ContentProviderOperation;
+import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.BatteryManager;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.Data;
+import android.provider.ContactsContract.PhoneLookup;
 import android.provider.ContactsContract.RawContacts;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.CommonDataKinds.StructuredName;
 import android.util.Log;
 
+/**
+ * Asynchronous activity that will get executed by the ServerListener class when
+ * it receives a BlueTextRequest from the ObjectStream. This thread will handle
+ * all BlueTextResponse.Request cases and a return a result if necessary.
+ * 
+ * @param BlueTextRequest
+ *            request that this response should be constructed for
+ * @author Andrew Guibert
+ */
 public class BlueTextRequestActivity extends AsyncTask<BlueTextRequest, Void, BlueTextResponse>
 {
 	private final static String TAG = "AGG";
 	private Context ctx;
 	private BlueTextRequest request;
-
+	
+	/**
+	 * Constructor method
+	 */
 	@Override
 	protected BlueTextResponse doInBackground(BlueTextRequest... params) 
 	{
@@ -38,6 +57,7 @@ public class BlueTextRequestActivity extends AsyncTask<BlueTextRequest, Void, Bl
 			return null;
 		}
 			
+		/* Handle each different request differently */
 		if(REQUEST.CONTACT_CHAT_HISTORY == request.getRequest())
 		{
 			ArrayList<TextMessage> chatHistory = queryTextMessageHistory(request.getContact());
@@ -53,16 +73,43 @@ public class BlueTextRequestActivity extends AsyncTask<BlueTextRequest, Void, Bl
 			int batteryLevel = getBatteryLevel();
 			return new BlueTextResponse(request, batteryLevel);
 		}
+		else if(REQUEST.CONTACT_PICTURE == request.getRequest())
+		{
+			Bitmap bmp = getContactPhoto(request.getContact());
+			
+			// Try to get the default contact image if there is one
+			if(bmp != null && bmp.getHeight() > 1 && bmp.getWidth() > 1){
+				ByteArrayOutputStream oStream = new ByteArrayOutputStream();
+				bmp.compress(Bitmap.CompressFormat.JPEG, 100, oStream);
+				return new BlueTextResponse(request, Boolean.valueOf(true), oStream.toByteArray());	
+			}
+			// If the user has no image locally on the phone, then we need
+			// to try to access the facebook profile picture using a graph
+			else{
+				return new BlueTextResponse(request, Boolean.valueOf(false), "http://graph.facebook.com/" 
+									+ request.getContact().getFirstName() + '.'
+									+ request.getContact().getLastName()
+									+ "/picture?type=square");
+			}
+		}
 		
 		return null;
 	}
 	
+	/**
+	 * Once doInBackground() completes, send any non-null result
+	 * to to PC application for processing.
+	 */
 	protected void onPostExecute(BlueTextResponse result){
 		if(result != null){
 			ServerListener.sendObjectToPC(result);
 		}		
 	}
 	
+	/**
+	 * Check the battery level of the phone.
+	 * @return Current phone battery level (1-100)
+	 */
 	private int getBatteryLevel()
 	{
 		if(ServerListener.batteryStatus != null)
@@ -70,6 +117,8 @@ public class BlueTextRequestActivity extends AsyncTask<BlueTextRequest, Void, Bl
 			int level = ServerListener.batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
 			int scale = ServerListener.batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
 			
+			// If the battery level isn't on a scale of 100
+			// for whatever reason...
 			if(scale != 100){
 				level = (int) ((float)level / (float)scale);
 			}
@@ -94,6 +143,12 @@ public class BlueTextRequestActivity extends AsyncTask<BlueTextRequest, Void, Bl
 		}
 	}
 		
+	/**
+	 * Query text message history of a given Contact c.
+	 * @param c The contact we want to retrieve the chat history of.
+	 * @return An ArrayList of TextMessages representing the chat history
+	 * between the Contact c and the BlueText user in chronological order.
+	 */
 	private ArrayList<TextMessage> queryTextMessageHistory(Contact c)
 	{
 		ArrayList<TextMessage> toRet = new ArrayList<TextMessage>();
@@ -106,9 +161,8 @@ public class BlueTextRequestActivity extends AsyncTask<BlueTextRequest, Void, Bl
 		}
 		phoneNumber += c.getPhoneNumber();
 				
-		//final String SMS_URI_INBOX = "content://sms/inbox";
-		//final String SMS_URI_ALL = "content://sms/";
 		Uri uri = Uri.parse("content://sms/");
+		// Query for chat history, retrieving only information we care about
 		String[] projection = new String[] {"body", "date", "type"};
 		Cursor cur = ctx.getContentResolver().query(
 				uri, 
@@ -124,8 +178,8 @@ public class BlueTextRequestActivity extends AsyncTask<BlueTextRequest, Void, Bl
 				int index_Type = cur.getColumnIndex("type");
 				do {
 					String textMessageBody = cur.getString(index_Body); // Body of text message
-					int int_Type = cur.getInt(index_Type);      // 1 if received, 2 if sent
-					//long longDate = cur.getLong(index_Date);    // TODO may include date later
+					int int_Type = cur.getInt(index_Type);              // 1 if received, 2 if sent
+					//long longDate = cur.getLong(index_Date);          // TODO may include date later
 					
 					// Construct a RECEIVED TextMessage
 					if(int_Type == 1){ 					
@@ -143,13 +197,16 @@ public class BlueTextRequestActivity extends AsyncTask<BlueTextRequest, Void, Bl
 		} finally{
 			if(cur != null) cur.close();
 		}
-//		for(TextMessage tm : toRet){
-//			Log.d(TAG, "FROM: " + tm.getSender().getFirstName() + "  TO: " + tm.getReceiver().getFirstName() + "    BODY: " + tm.getContent());
-//		}
 		
 		return toRet;
 	}
 	
+	/**
+	 * Insert a new contact that his been created on the PC side
+	 * into the Android's actual phone contacts list.
+	 * @param c The Contact to be inserted
+	 * @return 0 on success.  -1 if an exception occurred.
+	 */
 	private int insertNewContact(Contact c){
 		ArrayList<ContentProviderOperation> cpoList = new ArrayList<ContentProviderOperation>();
 		int rawContactInsertIndex = cpoList.size();
@@ -177,48 +234,46 @@ public class BlueTextRequestActivity extends AsyncTask<BlueTextRequest, Void, Bl
 			return -1;
 		}		
 	}
+	
+	/**
+	 * Attempt to retrieve the photo associated with
+	 * a given Contact c.
+	 * @param c The contact to retrieve the photo of.
+	 * @return A Bitmap of the Contact c's photo, or null
+	 * if there was no photo associated with this contact.
+	 */
+    public Bitmap getContactPhoto(Contact c) {
+    	String phoneNumber = "+1" + c.getPhoneNumber();
+	    Uri phoneUri = Uri.withAppendedPath(PhoneLookup.CONTENT_FILTER_URI, Uri.encode(phoneNumber));
+	    Uri photoUri = null;
+	    
+	    // Query for the contact's internal ID
+	    ContentResolver cr = ctx.getContentResolver();
+	    Cursor contact = cr.query(
+	    		phoneUri,
+	            new String[] { ContactsContract.Contacts._ID }, 
+	            null, null, null);
+	    
+	    try{
+		    // Get the photo URI of the corresponding contact
+	    	long userId = -1;
+		    if (contact.moveToFirst()) {
+		        userId = contact.getLong(contact.getColumnIndex(ContactsContract.Contacts._ID));
+		        photoUri = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, userId);
+		        
+			    if (photoUri != null) {
+			        InputStream input = ContactsContract.Contacts.openContactPhotoInputStream(cr, photoUri);
+			        if (input != null) {
+			            return BitmapFactory.decodeStream(input);
+			        }
+			    }			    
+		    }
+		    
+		    // If the contact had no photo, return null
+		    // and worry about what to do with the photo later
+	    	return null;
+	    } finally{
+	    	contact.close();
+	    }	    		
+	}
 }
-
-// Reference code in case stuff blows up
-//StringBuilder smsBuilder = new StringBuilder();
-//final String SMS_URI_INBOX = "content://sms/inbox";
-//final String SMS_URI_ALL = "content://sms/";
-//Uri uri = Uri.parse(SMS_URI_ALL);
-//String[] projection = new String[] { "_id", "address", "person","body", "date", "type" };
-//Cursor cur = ctx.getContentResolver().query(uri, null,"address='+15072542815'", null, "date desc");
-//cur.moveToFirst();
-//Log.d(TAG, "Number of texts: " + cur.getCount());
-////for(int i = 0; i < cur.getColumnCount(); i++){
-////	Log.d(TAG, cur.getColumnName(i) + ":\t " + cur.getString(i));
-////}
-//if (cur.moveToFirst()) {
-//	int index_Address = cur.getColumnIndex("address");
-//	int index_Person = cur.getColumnIndex("person");
-//	int index_Body = cur.getColumnIndex("body");
-//	int index_Date = cur.getColumnIndex("date");
-//	int index_Type = cur.getColumnIndex("type");
-//	do {
-//		String strAddress = cur.getString(index_Address);
-//		int intPerson = cur.getInt(index_Person);
-//		String strbody = cur.getString(index_Body);
-//		long longDate = cur.getLong(index_Date);
-//		int int_Type = cur.getInt(index_Type);
-//		
-//		if(int_Type == 2) Log.d(TAG, "GOT A TYPE 2");
-//
-//		smsBuilder.append(strAddress + ", ");
-//		smsBuilder.append(intPerson + ", ");
-//		smsBuilder.append(strbody + ", ");
-//		smsBuilder.append(longDate);
-//		smsBuilder.append("NEWCOL: " + cur.getString(cur.getColumnIndex("type")));
-//		smsBuilder.append("\n\n");
-//	} while (cur.moveToNext());
-//
-//	if (!cur.isClosed()) {
-//		cur.close();
-//		cur = null;
-//	}
-//} else {
-//	smsBuilder.append("no result!");
-//} // end if
-//Log.d(TAG, smsBuilder.toString());

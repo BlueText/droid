@@ -153,7 +153,6 @@ public class MainActivity extends Activity {
 	    finally {
 	        cursor.close();
 	    }
-
 	}
 
 	final Bitmap fetchThumbnail(final int thumbnailId) {
