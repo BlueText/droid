@@ -46,7 +46,7 @@ public class ServerListener extends AsyncTask<String, Void, Socket>
 	
 	protected Socket doInBackground(String... params)
 	{
-		Log.d(TAG, "Connected to IP: " + params[0]);
+		Log.d(TAG, "Connecting to IP: " + params[0]);
 		this.ipAddress = params[0];	
 		this.port = Integer.parseInt(params[1]);
 		
