@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 /**
  * Request object for communication between PC and android
- * @author Andrew
+ * @author Andy Guibert
  */
 public class BlueTextRequest implements Serializable{
 

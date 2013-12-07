@@ -14,7 +14,7 @@ import bigsky.TextMessage;
 /**
  * Sms listner that gets attached to the phone's inbox when the 
  * ServerListener establishes a connection witht the PC.
- * @author Andrew
+ * @author Andy Guibert
  */
 public class SmsListener extends BroadcastReceiver
 {

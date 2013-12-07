@@ -36,7 +36,7 @@ import android.util.Log;
  * 
  * @param BlueTextRequest
  *            request that this response should be constructed for
- * @author Andrew Guibert
+ * @author Andy Guibert
  */
 public class BlueTextRequestActivity extends AsyncTask<BlueTextRequest, Void, BlueTextResponse>
 {

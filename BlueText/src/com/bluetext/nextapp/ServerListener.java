@@ -29,7 +29,7 @@ import bigsky.BlueTextRequest.REQUEST;
  * First argument must be IP address<br>
  * Second argument must be the port to create the socket on<br>
  * (Both must be strings)
- * @author Andrew
+ * @author Andy Guibert
  */
 public class ServerListener extends AsyncTask<String, Void, Socket>
 {

@@ -8,7 +8,7 @@ import android.widget.Toast;
 /**
  * This activity is a secondary screen to the Android app where the 
  * phone us tethered to the PC.
- * @author Andrew
+ * @author Andy Guibert
  */
 public class PostLoginActivity extends Activity {	
 	

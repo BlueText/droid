@@ -17,7 +17,7 @@ import android.widget.Toast;
 
 /**
  * Main activity for BlueText android application.
- * @author Andrew
+ * @author Andy Guibert
  */
 public class MainActivity extends Activity {
 	

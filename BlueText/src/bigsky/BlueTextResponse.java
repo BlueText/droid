@@ -7,7 +7,7 @@ import bigsky.BlueTextRequest.REQUEST;
 
 /**
  * Response object for communication between PC and Android
- * @author Andrew
+ * @author Andy Guibert
  *
  */
 public class BlueTextResponse implements Serializable{

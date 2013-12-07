@@ -13,7 +13,7 @@ import android.util.Log;
 
 /**
  * Queries the phone for all existing contacts that have a phone number
- * @author Andrew
+ * @author Andy Guibert
  */
 public class GetAllContactsActivity extends AsyncTask<Object, Void, ConcurrentLinkedQueue<Contact>>
 {

@@ -10,7 +10,7 @@ import android.util.Log;
 
 /**
  * Async task for uploading a given IP into the MySQL table
- * @author Andrew
+ * @author Andy Guibert
  */
 public class PutIPActivity extends AsyncTask<String, String, String>
 {

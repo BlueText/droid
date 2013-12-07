@@ -11,6 +11,9 @@ import bigsky.Contact;
 import android.os.AsyncTask;
 import android.util.Log;
 
+/**
+ * @author Andy Guibert
+ */
 public class SQLLoginActivity extends AsyncTask<String, String, String>
 {
 	private final String TAG = "AGG";
