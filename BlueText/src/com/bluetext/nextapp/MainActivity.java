@@ -1,6 +1,11 @@
 package com.bluetext.nextapp;
 
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.Socket;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import bigsky.BlueTextRequest;
@@ -35,12 +40,13 @@ public class MainActivity extends Activity {
 	
 	@SuppressWarnings("unused")
 	private final static String TAG = "AGG";
-	private static String phoneNumber;
+	public static String phoneNumber;
 	static AsyncTask<String, Void, Socket> serverListener;
 	static AsyncTask<String, String, String> sqlTask;
 	static AsyncTask<Object, Void, ConcurrentLinkedQueue<Contact>> getAllContacts;
 	protected static Context ctx;
 	public static Contact userContact;
+	public static Bitmap bmp;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -59,8 +65,8 @@ public class MainActivity extends Activity {
 		((EditText) findViewById(R.id.phoneNumberField)).setFocusable(false);
 		((EditText) findViewById(R.id.phoneNumberField)).setText(phoneNumber);
 		
-		// TODO get the actual name of the user
-		userContact = new Contact("Jonathan", "Mielke", phoneNumber, null);
+		// Set a generic user contact just in case
+		userContact = new Contact("Me", "", phoneNumber, "");
 	}
 
 	@Override
@@ -132,21 +138,9 @@ public class MainActivity extends Activity {
 	    ContactsContract.CommonDataKinds.Photo.PHOTO
 	};
 	
-//	public void addThumbnail() {		
-//		ImageView iv = (ImageView)findViewById(R.id.imageView1);
-//	    final Integer thumbnailId = fetchThumbnailId();
-//	    if (thumbnailId != null) {
-//	        final Bitmap thumbnail = fetchThumbnail(thumbnailId);
-//	        if (thumbnail != null) {
-//	            iv.setImageBitmap(thumbnail);
-//	        }
-//	    }
-//
-//	}
-
 	private Integer fetchThumbnailId() {
 		ContentResolver contentResolver = getContentResolver();
-	    final Uri uri = Uri.withAppendedPath(ContactsContract.CommonDataKinds.Phone.CONTENT_FILTER_URI, Uri.encode("5072542815"));
+	    final Uri uri = Uri.withAppendedPath(ContactsContract.CommonDataKinds.Phone.CONTENT_FILTER_URI, Uri.encode("5636764204"));
 	    final Cursor cursor = contentResolver.query(uri, PHOTO_ID_PROJECTION, null, null, ContactsContract.Contacts.DISPLAY_NAME + " ASC");
 
 	    try {

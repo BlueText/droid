@@ -6,6 +6,8 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import bigsky.Contact;
+
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -37,8 +39,8 @@ public class SQLLoginActivity extends AsyncTask<String, String, String>
 				sqlResult = "Username or password not found.";
 				return sqlResult;
 			}
-			Log.d(TAG, rs.getString("phoneNumber"));
-			Log.d(TAG, rs.getString("password"));
+
+			MainActivity.userContact = new Contact(rs.getString("firstName"), rs.getString("lastName"), MainActivity.phoneNumber, "");
 			rs.close();		
 			
 			// If we get this far, lets get the Computer IP for this user
