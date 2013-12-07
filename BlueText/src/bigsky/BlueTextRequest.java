@@ -34,9 +34,6 @@ public class BlueTextRequest implements Serializable{
 	public BlueTextRequest(REQUEST rq, Contact c)
 	{
 		this.request = rq;
-		if(rq == REQUEST.CONTACT_PICTURE){
-			throw new RuntimeException("Can't ask for pictures yet");
-		}
 		
 		this.contact = c;
 		if(checkContactArg(rq, c)){
