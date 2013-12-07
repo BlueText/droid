@@ -25,6 +25,7 @@ import bigsky.BlueTextRequest.REQUEST;
 
 
 /**
+ * Background process that does forwarding and receiving for the phone.
  * First argument must be IP address<br>
  * Second argument must be the port to create the socket on<br>
  * (Both must be strings)
@@ -33,7 +34,7 @@ import bigsky.BlueTextRequest.REQUEST;
 public class ServerListener extends AsyncTask<String, Void, Socket>
 {
 	private int port;
-	private static int batteryLevel = -1;
+	private static int prevBatteryLevel = -1;
 	private String ipAddress;
 	private final static String TAG = "AGG";
 	private static Socket sock;
@@ -45,15 +46,14 @@ public class ServerListener extends AsyncTask<String, Void, Socket>
 	
 	protected Socket doInBackground(String... params)
 	{
-		Log.d(TAG, "Using IP: " + params[0]);
-		Log.d(TAG, "Creating socket on port: " + params[1]);
+		Log.d(TAG, "Connected to IP: " + params[0]);
 		this.ipAddress = params[0];	
 		this.port = Integer.parseInt(params[1]);
 		
 		try{
 			sock = new Socket(this.ipAddress, this.port);
 		}catch(Exception e){
-			Log.d(TAG, "Error in serverListener ctor: " + e.getMessage());
+			Log.d(TAG, "Error in serverListener constructor: " + e.getMessage());
 		}
 		
 		try{
@@ -63,6 +63,8 @@ public class ServerListener extends AsyncTask<String, Void, Socket>
 			Log.d(TAG, "Error creating ObjectStreams ctor: " + e.getMessage());
 		}
 		
+		// Once the PC and phone are connected, go to
+		// the post login screen 
 		ma.gotoPostLoginActivity();
 		
 		// Initiate the SMS listener on the phone
@@ -131,6 +133,10 @@ public class ServerListener extends AsyncTask<String, Void, Socket>
 		}
 	}
 	
+	/**
+	 * Centralized method for sending an object to the PC.
+	 * @param o The object to be sent to the PC.
+	 */
 	public synchronized static void sendObjectToPC(Object o)
 	{
 		try{
@@ -171,6 +177,10 @@ public class ServerListener extends AsyncTask<String, Void, Socket>
 	    return 0;
     }
 	
+	/**
+	 * Clean up the Object streams and server socket.
+	 * Print a report for each component closed.
+	 */
 	public static void closeStream()
 	{
 		if(pla != null && batteryLevelReceiver != null) pla.unregisterReceiver(batteryLevelReceiver);
@@ -200,24 +210,30 @@ public class ServerListener extends AsyncTask<String, Void, Socket>
 		Log.d(TAG, cleanUpStatus);
 	}
 	
+	/**
+	 * BroadcastReceiver attached to the sticky alarm
+	 * for battery statistics.  This listener will automatically
+	 * send updates to the PC whenever the phone battery level
+	 * changes by 1%.
+	 */
 	public static BroadcastReceiver batteryLevelReceiver = new BroadcastReceiver() {		
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+			int curLevel = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
 			int scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
 			
 			// Only do this if the battery percentage has changed
-			if(batteryLevel != level)
+			if(prevBatteryLevel != curLevel)
 			{
-				batteryLevel = level;
+				prevBatteryLevel = curLevel;
 				if(scale != 100){
-					level = (int) ((float)level / (float)scale);
+					curLevel = (int) ((float)curLevel / (float)scale);
 				}
 				
 				BlueTextRequest request = new BlueTextRequest(REQUEST.BATTERY_PERCENTAGE, null);
-				BlueTextResponse response = new BlueTextResponse(request, level);	
+				BlueTextResponse response = new BlueTextResponse(request, curLevel);	
 				sendObjectToPC(response);
-				Log.d(TAG, "Sending battery level " + level + " to PC.");
+				Log.d(TAG, "Sending battery level " + curLevel + " to PC.");
 			}
 		}
 	};

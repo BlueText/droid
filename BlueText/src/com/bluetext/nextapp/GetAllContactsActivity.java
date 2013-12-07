@@ -109,7 +109,7 @@ public class GetAllContactsActivity extends AsyncTask<Object, Void, ConcurrentLi
 	/**
 	 * Formats a phone number string by removing any non-numerical chars
 	 * @param no
-	 * @return
+	 * @return Phone number string of the format +1AAAXXXYYYY
 	 */
 	private String formatPhoneNumber(char[] no){
 		StringBuffer sb = new StringBuffer();

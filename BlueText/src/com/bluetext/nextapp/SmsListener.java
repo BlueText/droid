@@ -11,6 +11,11 @@ import android.util.Log;
 import bigsky.Contact;
 import bigsky.TextMessage;
 
+/**
+ * Sms listner that gets attached to the phone's inbox when the 
+ * ServerListener establishes a connection witht the PC.
+ * @author Andrew
+ */
 public class SmsListener extends BroadcastReceiver
 {
     private final String TAG = "AGG";
@@ -56,8 +61,7 @@ public class SmsListener extends BroadcastReceiver
         }
     }
     
-    public static void setServerListener(ServerListener listener)
-    {
+    public static void setServerListener(ServerListener listener){
     	servListener = listener;
     }   
     

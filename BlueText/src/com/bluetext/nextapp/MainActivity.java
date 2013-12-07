@@ -1,41 +1,24 @@
 package com.bluetext.nextapp;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.Socket;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import bigsky.BlueTextRequest;
-import bigsky.BlueTextRequest.REQUEST;
-import bigsky.BlueTextResponse;
 import bigsky.Contact;
-import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.BatteryManager;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.app.Activity;
-import android.content.BroadcastReceiver;
-import android.content.ContentResolver;
-import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.QuickContactBadge;
 import android.widget.Toast;
 
+/**
+ * Main activity for BlueText android application.
+ * @author Andrew
+ */
 public class MainActivity extends Activity {
 	
 	@SuppressWarnings("unused")
@@ -46,26 +29,30 @@ public class MainActivity extends Activity {
 	static AsyncTask<Object, Void, ConcurrentLinkedQueue<Contact>> getAllContacts;
 	protected static Context ctx;
 	public static Contact userContact;
-	public static Bitmap bmp;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		
+		// Give our loginActivity a reference to main thread
 		SQLLoginActivity.ma = this;
 		sqlTask = null;
 		
+		// Save application context for other activities to use
 		ctx = this.getApplicationContext();		
+		
+		// For better performance, kick off the activity to gather
+		// all of the necessary contacts right away when the application starts.
 		getAllContacts = new GetAllContactsActivity().execute();
+		
+		// Get the phone number of this device, enter it into username field, and set to unchangeable
 		phoneNumber = ((TelephonyManager)ctx.getSystemService(Context.TELEPHONY_SERVICE)).getLine1Number();
-		if(phoneNumber.length() == 11){
-			phoneNumber = phoneNumber.substring(1);
-		}
+		phoneNumber = formatPhoneNumber(phoneNumber.toCharArray());
 		((EditText) findViewById(R.id.phoneNumberField)).setFocusable(false);
 		((EditText) findViewById(R.id.phoneNumberField)).setText(phoneNumber);
 		
-		// Set a generic user contact just in case
+		// Set a generic user contact just in case SQL database doesn't have first and last name
 		userContact = new Contact("Me", "", phoneNumber, "");
 	}
 
@@ -107,6 +94,10 @@ public class MainActivity extends Activity {
 		//Log.d(TAG, "Added image");
 	}
 	
+	/**
+	 *  This method is called in the onComplete() of SQLLoginActivity
+	 * @param loginResult the result of the SQLLoginActivity
+	 */
 	public void checkLogin(String loginResult)
 	{
 		if(loginResult.contains("Login Successful!")){
@@ -125,53 +116,30 @@ public class MainActivity extends Activity {
 		}
 	}	
 	
+	/**
+	 *  This method is called once the ServerListener gets a connection
+	 */
 	public void gotoPostLoginActivity(){
 		Intent i = new Intent(getApplicationContext(), PostLoginActivity.class);
 		startActivity(i);
 	}
 	
-	private static final String[] PHOTO_ID_PROJECTION = new String[] {
-	    ContactsContract.Contacts.PHOTO_ID
-	};
-
-	private static final String[] PHOTO_BITMAP_PROJECTION = new String[] {
-	    ContactsContract.CommonDataKinds.Photo.PHOTO
-	};
-	
-	private Integer fetchThumbnailId() {
-		ContentResolver contentResolver = getContentResolver();
-	    final Uri uri = Uri.withAppendedPath(ContactsContract.CommonDataKinds.Phone.CONTENT_FILTER_URI, Uri.encode("5636764204"));
-	    final Cursor cursor = contentResolver.query(uri, PHOTO_ID_PROJECTION, null, null, ContactsContract.Contacts.DISPLAY_NAME + " ASC");
-
-	    try {
-	        Integer thumbnailId = null;
-	        if (cursor.moveToFirst()) {
-	            thumbnailId = cursor.getInt(cursor.getColumnIndex(ContactsContract.Contacts.PHOTO_ID));
-	        }
-	        return thumbnailId;
-	    }
-	    finally {
-	        cursor.close();
-	    }
-	}
-
-	final Bitmap fetchThumbnail(final int thumbnailId) {
-		ContentResolver contentResolver = getContentResolver();
-	    final Uri uri = ContentUris.withAppendedId(ContactsContract.Data.CONTENT_URI, thumbnailId);
-	    final Cursor cursor = contentResolver.query(uri, PHOTO_BITMAP_PROJECTION, null, null, null);
-
-	    try {
-	        Bitmap thumbnail = null;
-	        if (cursor.moveToFirst()) {
-	            final byte[] thumbnailBytes = cursor.getBlob(0);
-	            if (thumbnailBytes != null) {
-	                thumbnail = BitmapFactory.decodeByteArray(thumbnailBytes, 0, thumbnailBytes.length);
-	            }
-	        }
-	        return thumbnail;
-	    }
-	    finally {
-	        cursor.close();
-	    }
+	/**
+	 * Formats a phone number string by removing any non-numerical chars
+	 * @param no
+	 * @return Phone number string of the format +1AAAXXXYYYY
+	 */
+	private String formatPhoneNumber(char[] no){
+		StringBuffer sb = new StringBuffer();
+		for(char c : no){
+			if(c >= '0' && c <= '9'){
+				sb.append(c);
+			}
+		}
+		// Remove the country code for US numbers
+		if(sb.length() == 11 && sb.charAt(0) == '1'){
+			return sb.substring(1);
+		}
+		return sb.toString();
 	}
 }

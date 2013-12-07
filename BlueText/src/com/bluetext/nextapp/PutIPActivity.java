@@ -8,6 +8,10 @@ import java.sql.SQLException;
 import android.os.AsyncTask;
 import android.util.Log;
 
+/**
+ * Async task for uploading a given IP into the MySQL table
+ * @author Andrew
+ */
 public class PutIPActivity extends AsyncTask<String, String, String>
 {
 	private final String TAG = "AGG";
@@ -29,7 +33,6 @@ public class PutIPActivity extends AsyncTask<String, String, String>
 				throw new SQLException("Expected only 1 row to be updated");
 			}
 						
-			Log.d(TAG, "The IP: " + phone_IP + " was put into testTable for user:" + params[0]);
 			sqlResult = "Login Successful!";
 			return sqlResult;
 		} catch (SQLException e){

@@ -5,6 +5,11 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
 
+/**
+ * This activity is a secondary screen to the Android app where the 
+ * phone us tethered to the PC.
+ * @author Andrew
+ */
 public class PostLoginActivity extends Activity {	
 	
     @Override
@@ -15,6 +20,12 @@ public class PostLoginActivity extends Activity {
         Toast.makeText(getApplicationContext(), "Login successful!", Toast.LENGTH_LONG).show();
     }
 
+    /**
+     * If the logout button is pressed on the post login screen
+     * this method is called in order to shut down the connections
+     * and return the user to the login screen.
+     * @param view
+     */
     public void doLogout(View view)
 	{    	
     	ServerListener.closeStream();
