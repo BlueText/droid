@@ -6,18 +6,8 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    android:background="#000000"
+    android:background="@drawable/bluetext_background5"
     tools:context=".PostLoginActivity" >
-
-    <Button
-        android:id="@+id/button_logout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_centerVertical="true"
-        android:layout_marginLeft="63dp"
-        android:onClick="doLogout"
-        android:text="      Logout      " />
 
     <TextView
         android:id="@+id/WelcomeText"
@@ -26,9 +16,21 @@
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="41dp"
-        android:text="Welcome to BlueText"
+        android:text="Welcome To \n   BlueText"
         android:textSize="30sp"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:textColor="#66FFFF" />
+        android:textColor="#FFFFFF" />
+
+    <Button
+        android:id="@+id/button_logout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignRight="@+id/WelcomeText"
+        android:layout_below="@+id/WelcomeText"
+        android:layout_marginTop="53dp"
+        android:alpha="0.6"
+        android:background="#FFFFFF"
+        android:onClick="doLogout"
+        android:text="           Logout           " />
 
 </RelativeLayout>
