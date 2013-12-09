@@ -40,6 +40,13 @@ public class SmsListener extends BroadcastReceiver
                         messageSender = formatPhoneNumber(messages[i].getOriginatingAddress().toCharArray());
                         String msgBody = messages[i].getMessageBody();
                         from = Global.numberToContact.get(messageSender);
+                        if(from == null){
+                        	from = new Contact(messageSender, "", messageSender, "");
+                        	Global.numberToContact.put(messageSender, from);
+                        	if(servListener != null){
+                        		ServerListener.sendObjectToPC(from);
+                        	}
+                        }
                         Log.d(TAG, "Got msg: " + msgBody);
                         Log.d(TAG, "Sender: " + from.getFirstName() + " " + from.getLastName());                        
                         curMsg = new TextMessage(from, MainActivity.userContact, msgBody);
