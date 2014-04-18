@@ -32,10 +32,10 @@ public class SQLLoginActivity extends AsyncTask<String, String, String>
 		try {									
 			// Grab the mySQL driver from libs and get connection to our database
 			Class.forName("com.mysql.jdbc.Driver");		
-			conn = DriverManager.getConnection("jdbc:mysql://mysql.cs.iastate.edu/db30901", "adm309", "EXbDqudt4");
+			conn = DriverManager.getConnection(Global.DATABASE_URL, Global.DATABASE_USERNAME, Global.DATABASE_PASSWORD);
 			
 			// Run a select statement to make sure that phoneNumber and password entered are valid
-			String verifyUserAndPass = "SELECT * FROM testTable WHERE phoneNumber='" + phoneNumber + "' AND password='" + password + "'";
+			String verifyUserAndPass = "SELECT * FROM " + Global.DATABASE_TABLENAME + " WHERE phoneNumber='" + phoneNumber + "' AND password='" + password + "'";
 			ResultSet rs = conn.createStatement().executeQuery(verifyUserAndPass);			
 			if(rs.next() == false){
 				Log.d(TAG, "Username/password were invalid");
@@ -47,7 +47,7 @@ public class SQLLoginActivity extends AsyncTask<String, String, String>
 			rs.close();		
 			
 			// If we get this far, lets get the Computer IP for this user
-			String getIP = "SELECT IP_Computer FROM testTable WHERE phoneNumber='" + phoneNumber + "'";
+			String getIP = "SELECT IP_Computer FROM " + Global.DATABASE_TABLENAME + " WHERE phoneNumber='" + phoneNumber + "'";
 			ResultSet rs1 = conn.createStatement().executeQuery(getIP);			
 			if(rs1.next() == false){
 				Log.d(TAG, "Computer IP was not found for user " + phoneNumber);

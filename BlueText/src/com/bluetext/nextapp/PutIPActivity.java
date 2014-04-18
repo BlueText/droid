@@ -24,11 +24,11 @@ public class PutIPActivity extends AsyncTask<String, String, String>
 		try {						
 			// Get the mySQL driver jar and open a connection to the database
 			Class.forName("com.mysql.jdbc.Driver");
-			conn = DriverManager.getConnection("jdbc:mysql://mysql.cs.iastate.edu/db30901", "adm309", "EXbDqudt4");
+			conn = DriverManager.getConnection(Global.DATABASE_URL, Global.DATABASE_USERNAME, Global.DATABASE_PASSWORD);
 			
 			// Get the phone IP and store it into the database
 			String phone_IP = InetAddress.getLocalHost().getHostAddress();			
-			String sqlString = "UPDATE testTable SET IP_Phone='" + phone_IP + "' WHERE phoneNumber='" + params[0] + "'";			
+			String sqlString = "UPDATE " + Global.DATABASE_TABLENAME + " SET IP_Phone='" + phone_IP + "' WHERE phoneNumber='" + params[0] + "'";			
 			if(conn.createStatement().executeUpdate(sqlString) != 1){
 				throw new SQLException("Expected only 1 row to be updated");
 			}
